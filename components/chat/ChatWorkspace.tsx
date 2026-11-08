@@ -6,6 +6,7 @@ import {
   type AgentMetaView,
 } from "@/components/chat/AgentReplyCard";
 import { FavoriteImage } from "@/components/chat/FavoriteImage";
+import { SvgPreview } from "@/components/chat/SvgPreview";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 type ModelAllowlist = {
@@ -14,7 +15,7 @@ type ModelAllowlist = {
   allowCustomModelId: boolean;
 };
 
-type ConversationKind = "image" | "icon";
+type ConversationKind = "image" | "icon" | "svg";
 
 type Conversation = {
   id: string;
@@ -29,9 +30,20 @@ type Message = {
   role: "user" | "assistant" | "system";
   content: string;
   assetIds?: string[];
-  assets?: Array<{ id: string; favorite: boolean; fileUrl: string }>;
+  assets?: Array<{
+    id: string;
+    favorite: boolean;
+    fileUrl: string;
+    assetType?: ConversationKind | "image" | "icon" | "svg";
+    mimeType?: string;
+  }>;
   meta?: AgentMetaView | Record<string, unknown> | null;
 };
+
+function parseKind(value: unknown): ConversationKind {
+  if (value === "icon" || value === "svg") return value;
+  return "image";
+}
 
 export function ChatWorkspace() {
   const { t, locale } = useI18n();
@@ -72,8 +84,8 @@ export function ChatWorkspace() {
     if (!res.ok) return;
     const data = await res.json();
     setActiveId(id);
-    setActiveKind(data.kind === "icon" ? "icon" : "image");
-    setDraftKind(data.kind === "icon" ? "icon" : "image");
+    setActiveKind(parseKind(data.kind));
+    setDraftKind(parseKind(data.kind));
     setMessages(data.messages ?? []);
     setModel(data.model || "GPT-Image-1.5");
   }, []);
@@ -106,7 +118,7 @@ export function ChatWorkspace() {
     if (activeId) return activeId;
     const data = await createConversation(draftKind);
     setActiveId(data.id);
-    setActiveKind(data.kind === "icon" ? "icon" : draftKind);
+    setActiveKind(parseKind(data.kind ?? draftKind));
     await refreshConversations();
     return data.id as string;
   }
@@ -212,7 +224,11 @@ export function ChatWorkspace() {
   }
 
   const kindLabel = (kind?: ConversationKind) =>
-    kind === "icon" ? t.chat.kindIcon : t.chat.kindImage;
+    kind === "icon"
+      ? t.chat.kindIcon
+      : kind === "svg"
+        ? t.chat.kindSvg
+        : t.chat.kindImage;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
@@ -231,28 +247,26 @@ export function ChatWorkspace() {
             </button>
           </div>
           <div className="flex gap-1 rounded-md bg-stone-100 p-0.5">
-            <button
-              type="button"
-              onClick={() => setDraftKind("image")}
-              className={`flex-1 rounded px-2 py-1 text-xs ${
-                draftKind === "image"
-                  ? "bg-white text-stone-900 shadow-sm"
-                  : "text-stone-500"
-              }`}
-            >
-              {t.chat.kindImage}
-            </button>
-            <button
-              type="button"
-              onClick={() => setDraftKind("icon")}
-              className={`flex-1 rounded px-2 py-1 text-xs ${
-                draftKind === "icon"
-                  ? "bg-white text-stone-900 shadow-sm"
-                  : "text-stone-500"
-              }`}
-            >
-              {t.chat.kindIcon}
-            </button>
+            {(
+              [
+                ["image", t.chat.kindImage],
+                ["icon", t.chat.kindIcon],
+                ["svg", t.chat.kindSvg],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setDraftKind(value)}
+                className={`flex-1 rounded px-2 py-1 text-xs ${
+                  draftKind === value
+                    ? "bg-white text-stone-900 shadow-sm"
+                    : "text-stone-500"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
           <p className="text-[11px] text-stone-400">{t.chat.newKindHint}</p>
         </div>
@@ -349,16 +363,31 @@ export function ChatWorkspace() {
                               id,
                               favorite: false,
                               fileUrl: `/api/assets/${id}/file`,
+                              assetType: activeKind,
+                              mimeType:
+                                activeKind === "svg"
+                                  ? "image/svg+xml"
+                                  : undefined,
                             }))
-                        ).map((asset) => (
-                          <FavoriteImage
-                            key={asset.id}
-                            assetId={asset.id}
-                            src={asset.fileUrl}
-                            alt={t.chat.imageAlt}
-                            favorite={asset.favorite}
-                          />
-                        ))}
+                        ).map((asset) =>
+                          asset.assetType === "svg" ||
+                          asset.mimeType === "image/svg+xml" ? (
+                            <SvgPreview
+                              key={asset.id}
+                              assetId={asset.id}
+                              src={asset.fileUrl}
+                              favorite={asset.favorite}
+                            />
+                          ) : (
+                            <FavoriteImage
+                              key={asset.id}
+                              assetId={asset.id}
+                              src={asset.fileUrl}
+                              alt={t.chat.imageAlt}
+                              favorite={asset.favorite}
+                            />
+                          ),
+                        )}
                       </div>
                     )}
                   </>
@@ -368,9 +397,11 @@ export function ChatWorkspace() {
           })}
           {!messages.length && (
             <p className="text-sm text-stone-400">
-              {activeKind === "icon" || (!activeId && draftKind === "icon")
+              {(activeId ? activeKind : draftKind) === "icon"
                 ? t.chat.emptyHintIcon
-                : t.chat.emptyHint}
+                : (activeId ? activeKind : draftKind) === "svg"
+                  ? t.chat.emptyHintSvg
+                  : t.chat.emptyHint}
             </p>
           )}
         </div>
@@ -389,16 +420,21 @@ export function ChatWorkspace() {
               onChange={(e) => setPrompt(e.target.value)}
               rows={2}
               placeholder={
-                activeKind === "icon" || (!activeId && draftKind === "icon")
+                (activeId ? activeKind : draftKind) === "icon"
                   ? t.chat.promptPlaceholderIcon
-                  : t.chat.promptPlaceholder
+                  : (activeId ? activeKind : draftKind) === "svg"
+                    ? t.chat.promptPlaceholderSvg
+                    : t.chat.promptPlaceholder
               }
               className="flex-1 resize-none rounded-md border border-stone-300 bg-white px-3 py-2 text-sm"
               disabled={busy || Boolean(generatingId)}
             />
             <button
               type="button"
-              onClick={() => void sendChat({ skipClarification: true })}
+              onClick={() => {
+                if (!window.confirm(t.chat.skipClarificationConfirm)) return;
+                void sendChat({ skipClarification: true });
+              }}
               disabled={
                 busy ||
                 Boolean(generatingId) ||

@@ -61,6 +61,38 @@ export async function mcpGenerateImage(input: {
   };
 }
 
+export async function mcpGenerateSvgIcon(input: {
+  prompt: string;
+  model?: string;
+}) {
+  const prompt = input.prompt.trim();
+  if (!prompt) {
+    throw Object.assign(new Error("prompt is required"), { code: "BAD_REQUEST" });
+  }
+
+  const model = input.model?.trim() || getEnv().agentModel;
+  const conversation = createConversation({
+    title: prompt.slice(0, 80),
+    model,
+    source: "mcp",
+    kind: "svg",
+  });
+
+  const result = await runGeneration({
+    conversationId: conversation.id,
+    prompt,
+    model,
+    recordUserMessage: true,
+    source: "skip",
+  });
+
+  return {
+    conversationId: conversation.id,
+    assistantMessageId: result.assistantMessage.id,
+    assets: mapAssets(result.assets),
+  };
+}
+
 export async function mcpGenerateIcon(input: {
   prompt: string;
   sizes?: number[];

@@ -10,7 +10,7 @@ import { resolveModelId } from "@/lib/models/allowlist";
 export const runtime = "nodejs";
 
 function parseKind(value: unknown): ConversationKind | undefined {
-  if (value === "icon" || value === "image") return value;
+  if (value === "icon" || value === "image" || value === "svg") return value;
   return undefined;
 }
 

@@ -23,4 +23,16 @@ describe("buildAssetStorageKey", () => {
       }),
     ).toBe("conv2/icons/asset2.webp");
   });
+
+  it("builds svg path", () => {
+    expect(
+      buildAssetStorageKey({
+        conversationId: "conv3",
+        assetType: "svg",
+        assetId: "asset3",
+        ext: "svg",
+      }),
+    ).toBe("conv3/svg/asset3.svg");
+  });
 });
+

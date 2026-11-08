@@ -40,12 +40,24 @@ function mapRow(row: Row, assets: MessageAssetSummary[] = []): Message {
 
 function assetsForMessage(messageId: string): MessageAssetSummary[] {
   const rows = getDb()
-    .prepare(`SELECT id, favorite FROM assets WHERE message_id = ?`)
-    .all(messageId) as { id: string; favorite: number }[];
+    .prepare(
+      `SELECT id, favorite, asset_type, mime_type FROM assets WHERE message_id = ?`,
+    )
+    .all(messageId) as {
+    id: string;
+    favorite: number;
+    asset_type: string;
+    mime_type: string;
+  }[];
   return rows.map((r) => ({
     id: r.id,
     favorite: Boolean(r.favorite),
     fileUrl: assetFileUrl(r.id),
+    assetType:
+      r.asset_type === "icon" || r.asset_type === "svg"
+        ? r.asset_type
+        : "image",
+    mimeType: r.mime_type,
   }));
 }
 

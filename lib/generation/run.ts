@@ -12,6 +12,8 @@ import {
 } from "@/lib/icons/sizes";
 import { resolveModelId } from "@/lib/models/allowlist";
 import { getImageProvider } from "@/lib/providers/poe";
+import { generateSvgMarkup } from "@/lib/svg/generate";
+import { persistSvgAsset } from "@/lib/svg/persist";
 import { buildGenerationMessages } from "./context-window";
 import {
   releaseGenerationLock,
@@ -59,10 +61,19 @@ export async function runGeneration(input: {
 
   try {
     const profile = getProfile();
-    const model = resolveModelId(
-      input.model || conversation.model || profile.defaultModel,
-    );
-    const assetType = conversation.kind === "icon" ? "icon" : "image";
+    const env = getEnv();
+    const isSvg = conversation.kind === "svg";
+    const model = isSvg
+      ? input.model?.trim() || env.agentModel
+      : resolveModelId(
+          input.model || conversation.model || profile.defaultModel,
+        );
+    const assetType =
+      conversation.kind === "icon"
+        ? "icon"
+        : conversation.kind === "svg"
+          ? "svg"
+          : "image";
 
     const recordUser = input.recordUserMessage !== false;
     let userMessage: Message | null = null;
@@ -81,10 +92,22 @@ export async function runGeneration(input: {
     if (!conversation.title) {
       touchConversation(conversation.id, {
         title: (input.userMessageContent || prompt).slice(0, 80),
-        model,
+        model: isSvg ? conversation.model : model,
       });
-    } else {
+    } else if (!isSvg) {
       touchConversation(conversation.id, { model });
+    } else {
+      touchConversation(conversation.id, {});
+    }
+
+    if (assetType === "svg") {
+      return await runSvgGeneration({
+        conversationId: conversation.id,
+        prompt,
+        model,
+        systemPrompt: profile.systemPrompt,
+        userMessage,
+      });
     }
 
     if (assetType === "icon") {
@@ -170,11 +193,67 @@ export async function runGeneration(input: {
       id: a.id,
       favorite: a.favorite,
       fileUrl: a.fileUrl,
+      assetType: a.assetType,
+      mimeType: a.mimeType,
     }));
     return { userMessage, assistantMessage, assets };
   } finally {
     releaseGenerationLock(conversation.id);
   }
+}
+
+async function runSvgGeneration(input: {
+  conversationId: string;
+  prompt: string;
+  model: string;
+  systemPrompt: string;
+  userMessage: Message | null;
+}): Promise<GenerateResult> {
+  const brief = input.systemPrompt.trim()
+    ? `${input.prompt}\n\nStyle preferences:\n${input.systemPrompt.trim()}`
+    : input.prompt;
+
+  const { svg, model } = await generateSvgMarkup({
+    prompt: brief,
+    model: input.model,
+  });
+
+  const assistantMessage = insertMessage({
+    conversationId: input.conversationId,
+    role: "assistant",
+    content: `Generated SVG icon with ${model}.`,
+    model,
+    meta: {
+      kind: "image_result",
+      imagePrompt: input.prompt,
+      assetType: "svg",
+    },
+  });
+
+  const asset = await persistSvgAsset({
+    svg,
+    conversationId: input.conversationId,
+    messageId: assistantMessage.id,
+    prompt: input.prompt,
+    model,
+  });
+
+  assistantMessage.assetIds = [asset.id];
+  assistantMessage.assets = [
+    {
+      id: asset.id,
+      favorite: asset.favorite,
+      fileUrl: asset.fileUrl,
+      assetType: asset.assetType,
+      mimeType: asset.mimeType,
+    },
+  ];
+
+  return {
+    userMessage: input.userMessage,
+    assistantMessage,
+    assets: [asset],
+  };
 }
 
 async function runIconBatch(input: {
@@ -280,6 +359,8 @@ async function runIconBatch(input: {
     id: a.id,
     favorite: a.favorite,
     fileUrl: a.fileUrl,
+    assetType: a.assetType,
+    mimeType: a.mimeType,
   }));
 
   return {

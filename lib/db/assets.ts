@@ -20,7 +20,9 @@ type Row = {
 };
 
 function mapAssetType(value: string | undefined): AssetType {
-  return value === "icon" ? "icon" : "image";
+  if (value === "icon") return "icon";
+  if (value === "svg") return "svg";
+  return "image";
 }
 
 function mapRow(row: Row): Asset {
@@ -58,7 +60,10 @@ export function insertAsset(input: {
 }): Asset {
   const id = input.id ?? ulid();
   const createdAt = new Date().toISOString();
-  const assetType = input.assetType === "icon" ? "icon" : "image";
+  const assetType: AssetType =
+    input.assetType === "icon" || input.assetType === "svg"
+      ? input.assetType
+      : "image";
   getDb()
     .prepare(
       `INSERT INTO assets (
@@ -101,7 +106,7 @@ export function listAssets(opts?: {
   if (opts?.favorite === true) {
     sql += ` AND favorite = 1`;
   }
-  if (opts?.type === "image" || opts?.type === "icon") {
+  if (opts?.type === "image" || opts?.type === "icon" || opts?.type === "svg") {
     sql += ` AND asset_type = ?`;
     params.push(opts.type);
   }

@@ -10,7 +10,11 @@ import { z } from "zod";
 import { getEnv } from "../lib/env";
 import { loadDotEnv } from "../lib/load-dotenv";
 import { getModelAllowlist } from "../lib/models/allowlist";
-import { mcpGenerateIcon, mcpGenerateImage } from "../lib/mcp/generate";
+import {
+  mcpGenerateIcon,
+  mcpGenerateImage,
+  mcpGenerateSvgIcon,
+} from "../lib/mcp/generate";
 
 loadDotEnv();
 
@@ -114,6 +118,53 @@ server.registerTool(
 
     try {
       const result = await mcpGenerateIcon({ prompt, sizes, model });
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Generation failed";
+      return {
+        isError: true,
+        content: [{ type: "text", text: message }],
+      };
+    }
+  },
+);
+
+server.registerTool(
+  "generate_svg_icon",
+  {
+    title: "Generate SVG icon",
+    description:
+      "Generate a single CSS-colorable/scalable SVG icon from a prompt (no clarification). Uses viewBox + currentColor. Saves under conversation svg/ directory.",
+    inputSchema: {
+      prompt: z.string().min(1).describe("SVG icon brief / prompt"),
+      model: z
+        .string()
+        .optional()
+        .describe("Optional Poe text model id (default SURREAL_AGENT_MODEL)"),
+    },
+  },
+  async ({ prompt, model }) => {
+    if (!getEnv().poeConfigured) {
+      return {
+        isError: true,
+        content: [
+          {
+            type: "text",
+            text: "POE_API_KEY is not configured in the environment.",
+          },
+        ],
+      };
+    }
+
+    try {
+      const result = await mcpGenerateSvgIcon({ prompt, model });
       return {
         content: [
           {

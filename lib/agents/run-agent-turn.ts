@@ -5,11 +5,17 @@ import { getProfile } from "@/lib/db/profile";
 import { getEnv, requirePoeApiKey } from "@/lib/env";
 import { buildGrillSystemPrompt } from "./grill-system-prompt";
 import { buildIconGrillSystemPrompt } from "./icon-grill-system-prompt";
+import { buildSvgGrillSystemPrompt } from "./svg-grill-system-prompt";
 import {
   fallbackAgentReply,
   parseAgentReplyJson,
   type AgentReply,
 } from "./types";
+
+function resolveKind(kind?: ConversationKind): ConversationKind {
+  if (kind === "icon" || kind === "svg") return kind;
+  return "image";
+}
 
 export async function runAgentTurn(input: {
   conversationId: string;
@@ -28,12 +34,14 @@ export async function runAgentTurn(input: {
   const agentModel = env.agentModel;
   const profile = getProfile();
   const recent = getRecentMessages(input.conversationId, env.contextLimit);
-  const kind = input.kind === "icon" ? "icon" : "image";
+  const kind = resolveKind(input.kind);
 
   const systemPrompt =
     kind === "icon"
       ? buildIconGrillSystemPrompt(input.locale)
-      : buildGrillSystemPrompt(input.locale);
+      : kind === "svg"
+        ? buildSvgGrillSystemPrompt(input.locale)
+        : buildGrillSystemPrompt(input.locale);
 
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
     { role: "system", content: systemPrompt },
@@ -47,13 +55,13 @@ export async function runAgentTurn(input: {
   }
 
   if (input.forceSkip) {
-    messages.push({
-      role: "system",
-      content:
-        kind === "icon"
-          ? "The user requested to SKIP further clarification this turn. Set readyToGenerate=true, produce the best suggestedPrompt and suggestedSizes (default [16,32,64] if unknown) from known information, and list assumptions."
-          : "The user requested to SKIP further clarification this turn. Set readyToGenerate=true, produce the best suggestedPrompt from known information, and list assumptions.",
-    });
+    const skipHint =
+      kind === "icon"
+        ? "The user requested to SKIP further clarification this turn. Set readyToGenerate=true, produce the best suggestedPrompt and suggestedSizes (default [16,32,64] if unknown) from known information, and list assumptions."
+        : kind === "svg"
+          ? "The user requested to SKIP further clarification this turn. Set readyToGenerate=true, produce the best suggestedPrompt for a monochrome currentColor SVG icon, leave suggestedSizes empty, and list assumptions."
+          : "The user requested to SKIP further clarification this turn. Set readyToGenerate=true, produce the best suggestedPrompt from known information, and list assumptions.";
+    messages.push({ role: "system", content: skipHint });
   }
 
   for (const msg of recent) {
@@ -89,19 +97,23 @@ export async function runAgentTurn(input: {
   let reply = parseAgentReplyJson(raw) ?? fallbackAgentReply(raw);
 
   if (input.forceSkip) {
+    const defaultPrompt =
+      kind === "icon"
+        ? "simple flat app icon, transparent background, centered"
+        : kind === "svg"
+          ? "simple flat monochrome app icon, suitable for currentColor SVG"
+          : "game art concept, clear subject, clean composition";
     reply = {
       ...reply,
       readyToGenerate: true,
       suggestedPrompt:
-        reply.suggestedPrompt.trim() ||
-        input.userPrompt.trim() ||
-        (kind === "icon"
-          ? "simple flat app icon, transparent background, centered"
-          : "game art concept, clear subject, clean composition"),
+        reply.suggestedPrompt.trim() || input.userPrompt.trim() || defaultPrompt,
       suggestedSizes:
         kind === "icon" && !reply.suggestedSizes.length
           ? [16, 32, 64]
-          : reply.suggestedSizes,
+          : kind === "svg"
+            ? []
+            : reply.suggestedSizes,
     };
   }
 

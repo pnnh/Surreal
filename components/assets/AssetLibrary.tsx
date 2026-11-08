@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 
-type AssetType = "image" | "icon";
+type AssetType = "image" | "icon" | "svg";
 
 type Asset = {
   id: string;
@@ -11,6 +11,7 @@ type Asset = {
   model: string;
   favorite: boolean;
   assetType?: AssetType;
+  mimeType?: string;
   width?: number | null;
   height?: number | null;
   createdAt: string;
@@ -84,6 +85,7 @@ export function AssetLibrary() {
             <option value="all">{t.assets.typeAll}</option>
             <option value="image">{t.assets.typeImage}</option>
             <option value="icon">{t.assets.typeIcon}</option>
+            <option value="svg">{t.assets.typeSvg}</option>
           </select>
         </label>
         <button
@@ -106,7 +108,7 @@ export function AssetLibrary() {
               src={asset.fileUrl}
               alt={asset.prompt}
               className={`w-full bg-[linear-gradient(45deg,#e7e5e4_25%,transparent_25%),linear-gradient(-45deg,#e7e5e4_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e7e5e4_75%),linear-gradient(-45deg,transparent_75%,#e7e5e4_75%)] bg-[length:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0] ${
-                asset.assetType === "icon"
+                asset.assetType === "icon" || asset.assetType === "svg"
                   ? "aspect-square object-contain p-6"
                   : "aspect-square object-cover"
               }`}
@@ -116,7 +118,9 @@ export function AssetLibrary() {
                 <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-stone-600">
                   {asset.assetType === "icon"
                     ? t.assets.typeIcon
-                    : t.assets.typeImage}
+                    : asset.assetType === "svg"
+                      ? t.assets.typeSvg
+                      : t.assets.typeImage}
                 </span>
                 {asset.width && asset.height ? (
                   <span className="text-[10px] text-stone-400">

@@ -11,7 +11,9 @@ export async function GET(request: Request) {
     favoriteParam === null ? undefined : favoriteParam === "true";
   const typeParam = searchParams.get("type");
   const type: AssetType | undefined =
-    typeParam === "image" || typeParam === "icon" ? typeParam : undefined;
+    typeParam === "image" || typeParam === "icon" || typeParam === "svg"
+      ? typeParam
+      : undefined;
   const limit = searchParams.get("limit");
   const cursor = searchParams.get("cursor") ?? undefined;
   const page = listAssets({

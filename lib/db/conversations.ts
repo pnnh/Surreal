@@ -19,7 +19,9 @@ type Row = {
 };
 
 function mapKind(kind: string | undefined): ConversationKind {
-  return kind === "icon" ? "icon" : "image";
+  if (kind === "icon") return "icon";
+  if (kind === "svg") return "svg";
+  return "image";
 }
 
 function mapRow(row: Row): Conversation {
@@ -77,7 +79,8 @@ export function createConversation(input?: {
   const model = input?.model?.trim() || "GPT-Image-1.5";
   const title = input?.title?.trim() || null;
   const source = input?.source === "mcp" ? "mcp" : "web";
-  const kind = input?.kind === "icon" ? "icon" : "image";
+  const kind: ConversationKind =
+    input?.kind === "icon" || input?.kind === "svg" ? input.kind : "image";
   getDb()
     .prepare(
       `INSERT INTO conversations (id, title, model, source, kind, created_at, updated_at)

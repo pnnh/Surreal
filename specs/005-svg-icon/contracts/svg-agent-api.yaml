@@ -1,0 +1,98 @@
+# OpenAPI-ish contract — Surreal SVG Icon Agent (005)
+openapi: 3.0.3
+info:
+  title: Surreal SVG Icon Agent API
+  version: 0.1.0
+paths:
+  /api/conversations:
+    post:
+      summary: Create conversation; kind may be svg
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kind:
+                  type: string
+                  enum: [image, icon, svg]
+                  default: image
+                model: { type: string }
+                title: { type: string, nullable: true }
+      responses:
+        "201":
+          description: Conversation includes kind=svg when requested
+    get:
+      parameters:
+        - in: query
+          name: kind
+          schema:
+            type: string
+            enum: [image, icon, svg]
+      responses:
+        "200":
+          description: Filtered conversation list
+
+  /api/chat:
+    post:
+      summary: Agent turn; svg kind uses SVG grill system prompt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [conversationId, content]
+              properties:
+                conversationId: { type: string }
+                content: { type: string }
+                skipClarification: { type: boolean }
+                locale: { type: string, enum: [en, zh] }
+      responses:
+        "200":
+          description: Agent reply; no SVG file persisted unless skip chains generate
+
+  /api/generate:
+    post:
+      summary: Gate; when conversation.kind=svg runs SVG text generation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [conversationId, prompt, source]
+              properties:
+                conversationId: { type: string }
+                prompt: { type: string }
+                source: { type: string, enum: [confirm, skip] }
+                model: { type: string }
+      responses:
+        "200":
+          description: Assistant message + svg asset(s)
+        "400":
+          description: Invalid/unsafe SVG from model after sanitize
+
+  /api/assets:
+    get:
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [image, icon, svg]
+        - in: query
+          name: favorite
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: Page including assetType=svg items
+
+  /api/assets/{assetId}/file:
+    get:
+      summary: Serve image/svg+xml for svg assets
+      responses:
+        "200":
+          description: SVG bytes
+          content:
+            image/svg+xml:
+              schema:
+                type: string

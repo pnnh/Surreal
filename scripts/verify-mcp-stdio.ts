@@ -20,7 +20,12 @@ async function main() {
   const names = tools.tools.map((t) => t.name).sort();
   console.log("tools:", names.join(", "));
 
-  const expected = ["generate_image", "generate_icon", "list_image_models"];
+  const expected = [
+    "generate_image",
+    "generate_icon",
+    "generate_svg_icon",
+    "list_image_models",
+  ];
   for (const name of expected) {
     if (!names.includes(name)) {
       console.error(`FAIL: missing tool ${name}`);

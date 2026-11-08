@@ -27,14 +27,17 @@ export type Messages = {
     missingKey: string;
     emptyHint: string;
     emptyHintIcon: string;
+    emptyHintSvg: string;
     promptPlaceholder: string;
     promptPlaceholderIcon: string;
+    promptPlaceholderSvg: string;
     send: string;
     generating: string;
     thinking: string;
     generateFailed: string;
     imageAlt: string;
     skipClarification: string;
+    skipClarificationConfirm: string;
     generateNow: string;
     suggestedPrompt: string;
     suggestedSizes: string;
@@ -42,7 +45,12 @@ export type Messages = {
     assumptions: string;
     kindImage: string;
     kindIcon: string;
+    kindSvg: string;
     newKindHint: string;
+    svgColor: string;
+    svgSize: string;
+    svgDownload: string;
+    svgLoadFailed: string;
   };
   assets: {
     title: string;
@@ -52,6 +60,7 @@ export type Messages = {
     typeAll: string;
     typeImage: string;
     typeIcon: string;
+    typeSvg: string;
     refresh: string;
     loadFailed: string;
     favorite: string;
@@ -92,9 +101,9 @@ export const messages: Record<Locale, Messages> = {
       readOnly: "Read-only",
     },
     chat: {
-      title: "Image & icon agent",
+      title: "Image, icon & SVG agent",
       subtitle:
-        "Clarify what you want with a lightweight grill-style agent, then generate game art or app icons.",
+        "Clarify with a grill-style agent, then generate game art, bitmap icons, or CSS-colorable SVG icons.",
       sessions: "Sessions",
       newSession: "New",
       untitled: "Untitled session",
@@ -106,14 +115,19 @@ export const messages: Record<Locale, Messages> = {
         "Describe what you want. The agent will ask clarifying questions before generating.",
       emptyHintIcon:
         "Describe the icon (style, subject, sizes). The agent will clarify, then batch-generate bitmaps.",
+      emptyHintSvg:
+        "Describe a monochrome vector icon. The agent will clarify, then generate one CSS-colorable SVG.",
       promptPlaceholder: "Describe the game art you want…",
       promptPlaceholderIcon: "Describe the icon you want (e.g. cart, 32/64)…",
+      promptPlaceholderSvg: "Describe the SVG icon (e.g. cart, monochrome)…",
       send: "Send",
       generating: "Generating…",
       thinking: "Thinking…",
       generateFailed: "Generation failed",
       imageAlt: "Generated image",
       skipClarification: "Skip & generate",
+      skipClarificationConfirm:
+        "Skip clarification and generate now? The result may be less accurate.",
       generateNow: "Generate now",
       suggestedPrompt: "Suggested prompt",
       suggestedSizes: "Suggested sizes",
@@ -121,16 +135,22 @@ export const messages: Record<Locale, Messages> = {
       assumptions: "Assumptions",
       kindImage: "Image",
       kindIcon: "Icon",
+      kindSvg: "SVG",
       newKindHint: "New sessions use the selected type above.",
+      svgColor: "Color",
+      svgSize: "Size",
+      svgDownload: "Download",
+      svgLoadFailed: "Failed to load SVG",
     },
     assets: {
       title: "Asset library",
-      subtitle: "Browse, favorite, or delete saved images and icons.",
+      subtitle: "Browse, favorite, or delete saved images, icons, and SVGs.",
       favoritesOnly: "Favorites only",
       typeFilter: "Type",
       typeAll: "All",
       typeImage: "Images",
       typeIcon: "Icons",
+      typeSvg: "SVG",
       refresh: "Refresh",
       loadFailed: "Failed to load",
       favorite: "Favorite",
@@ -171,8 +191,9 @@ export const messages: Record<Locale, Messages> = {
       readOnly: "只读",
     },
     chat: {
-      title: "生图 / 生图标 Agent",
-      subtitle: "先用反向拷问澄清意图，确认后再生成游戏美术或应用图标。",
+      title: "生图 / 图标 / SVG Agent",
+      subtitle:
+        "反向拷问澄清后，生成游戏美术、位图图标，或可用 CSS 调色缩放的 SVG。",
       sessions: "会话",
       newSession: "新建",
       untitled: "未命名会话",
@@ -183,14 +204,19 @@ export const messages: Record<Locale, Messages> = {
       emptyHint: "描述你想要的内容。Agent 会先澄清，再调用生图模型。",
       emptyHintIcon:
         "描述图标（风格、主体、尺寸）。Agent 会先澄清，再按尺寸批量生成位图。",
+      emptyHintSvg:
+        "描述单色矢量图标。Agent 会先澄清，再生成可用 CSS 换色/缩放的 SVG。",
       promptPlaceholder: "描述你想生成的游戏美术素材…",
       promptPlaceholderIcon: "描述想要的图标（例如购物车，32/64）…",
+      promptPlaceholderSvg: "描述 SVG 图标（例如购物车、单色）…",
       send: "发送",
       generating: "生成中…",
       thinking: "思考中…",
       generateFailed: "生成失败",
       imageAlt: "生成图片",
       skipClarification: "跳过澄清并生成",
+      skipClarificationConfirm:
+        "确定跳过澄清并立即生成？结果可能不够精准。",
       generateNow: "立即生成",
       suggestedPrompt: "建议提示词",
       suggestedSizes: "建议尺寸",
@@ -198,16 +224,22 @@ export const messages: Record<Locale, Messages> = {
       assumptions: "假设",
       kindImage: "图片",
       kindIcon: "图标",
+      kindSvg: "SVG",
       newKindHint: "新建会话将使用上方所选类型。",
+      svgColor: "颜色",
+      svgSize: "大小",
+      svgDownload: "下载",
+      svgLoadFailed: "SVG 加载失败",
     },
     assets: {
       title: "资产库",
-      subtitle: "浏览、收藏或删除已落盘的图片与图标。",
+      subtitle: "浏览、收藏或删除已落盘的图片、图标与 SVG。",
       favoritesOnly: "仅收藏",
       typeFilter: "类型",
       typeAll: "全部",
       typeImage: "图片",
       typeIcon: "图标",
+      typeSvg: "SVG",
       refresh: "刷新",
       loadFailed: "加载失败",
       favorite: "收藏",

@@ -7,9 +7,9 @@ export type GenerationProfile = {
 
 export type ConversationSource = "web" | "mcp";
 
-export type ConversationKind = "image" | "icon";
+export type ConversationKind = "image" | "icon" | "svg";
 
-export type AssetType = "image" | "icon";
+export type AssetType = "image" | "icon" | "svg";
 
 export type Conversation = {
   id: string;
@@ -25,6 +25,8 @@ export type MessageAssetSummary = {
   id: string;
   favorite: boolean;
   fileUrl: string;
+  assetType?: AssetType;
+  mimeType?: string;
 };
 
 export type MessageRole = "user" | "assistant" | "system";
