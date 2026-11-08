@@ -1,0 +1,126 @@
+specs/005-svg-icon/contracts/svg-agent-api.yaml
+  s_e196f514e0974e::t_2eaa1847079028 1-98
+lib/i18n/messages.ts
+  s_e196f514e0974e::t_7cc4a3c1b83571 104,106,118-119,122,138,140-143,147,153
+  s_e196f514e0974e::t_d401476b4cb6d3 30,33,48,50-53,63
+  s_e196f514e0974e::t_4e522d3caf2cb6 129-130
+  s_e196f514e0974e::t_be5a7dfbae5b78 40
+  s_e196f514e0974e::t_204ab9543b2127 218-219
+  s_e196f514e0974e::t_cc8bca2e20d329 194-196,207-208,211,227,229-232,236,242
+tests/unit/svg-sanitize.test.ts
+  s_e196f514e0974e::t_406009897c007d 1-46
+specs/005-svg-icon/research.md
+  s_e196f514e0974e::t_012aba1efef665 1-55
+lib/agents/svg-grill-system-prompt.ts
+  s_e196f514e0974e::t_3b2c612a0134b3 1-31
+mcp/server.ts
+  s_e196f514e0974e::t_7e9f6dfb71bd1a 139-185
+  s_e196f514e0974e::t_00c35f0458d999 13-17
+specs/005-svg-icon/tasks.md
+  s_e196f514e0974e::t_c1439dfc7b55ec 1-22,26-34,43-55,59-71,78-90,94-106,109-121,126-132,136-207
+  s_e196f514e0974e::t_f27f4b95952b91 23-25,35-42,56-58,72-77,91-93,107-108,122-125,133-135
+lib/db/assets.ts
+  s_e196f514e0974e::t_a2444af22da277 109
+  s_e196f514e0974e::t_bff94cb9386285 63-66
+  s_e196f514e0974e::t_0ad9c893854ef0 23-25
+tests/unit/asset-path.test.ts
+  s_e196f514e0974e::t_76a60816ca8195 26-36,38
+specs/005-svg-icon/plan.md
+  s_e196f514e0974e::t_358a7b4899a2a2 2,4,6-8,10-12,14,16,18,20,22,24,26,28,30-32,40,42-47,57-58,60-61,77-78,80-82
+  s_e196f514e0974e::t_36de0f0d7970f8 1,3,5,9,13,15,17,19,21,23,25,27,29,33-39,41,48-56,59,62-76,79,83
+lib/svg/generate.ts
+  s_e196f514e0974e::t_5b4b1d19fff112 1-58
+package.json
+  s_e196f514e0974e::t_c4012cf209517a 16
+app/api/conversations/route.ts
+  s_e196f514e0974e::t_acc0c619aedf8c 13
+scripts/verify-mcp-stdio.ts
+  s_e196f514e0974e::t_411970713804c2 23-28
+lib/agents/run-agent-turn.ts
+  s_e196f514e0974e::t_bde2c2b01ae8dc 8,15-19,37,42-44,58-64,100-105,110,114-116
+lib/mcp/generate.ts
+  s_e196f514e0974e::t_9a8f3d21a604c3 52,55,58,64-82
+  s_e196f514e0974e::t_f7caa12ec4eb16 51
+  s_e196f514e0974e::t_8883243605034d 53-54
+  s_e196f514e0974e::t_6b84bb5b68034a 56-57
+  s_e196f514e0974e::t_a02c6130d35908 59-63
+scripts/verify-mcp-svg.ts
+  s_e196f514e0974e::t_d141c20aec1d0e 1-58
+specs/005-svg-icon/data-model.md
+  s_e196f514e0974e::t_bab9a4b83500df 1-81
+README.md
+  s_e196f514e0974e::t_ad27c1f568807b 3,18-21,23,25,29,34,39
+AGENTS.md
+  s_e196f514e0974e::t_1c619735ac2890 29,35
+specs/005-svg-icon/checklists/requirements.md
+  s_e196f514e0974e::t_1fc0ea5e7b35e5 1-35
+components/assets/AssetLibrary.tsx
+  s_e196f514e0974e::t_d9105ceb00e2eb 88
+  s_e196f514e0974e::t_9ce8875b1adb84 111,121-123
+  s_e196f514e0974e::t_52253c470e169d 6,14
+specs/005-svg-icon/contracts/mcp-tools.md
+  s_e196f514e0974e::t_a865021678be9d 1-44
+lib/svg/persist.ts
+  s_e196f514e0974e::t_354e57a8dee813 1-43
+lib/svg/sanitize.ts
+  s_e196f514e0974e::t_da988756d7ade6 1-95
+specs/005-svg-icon/quickstart.md
+  s_e196f514e0974e::t_9525a8a231f45d 1-37
+app/api/assets/route.ts
+  s_e196f514e0974e::t_5c34d260f58d63 14-16
+lib/db/types.ts
+  s_e196f514e0974e::t_6325a13950a148 28-29
+  s_e196f514e0974e::t_f5c3657131a483 10,12
+components/chat/ChatWorkspace.tsx
+  s_e196f514e0974e::t_cc7613ca5c718b 9,18,33-39,43-46
+  s_e196f514e0974e::t_a0eb0fed5c4f1c 121
+  s_e196f514e0974e::t_981c0aa97cca62 366-370
+  s_e196f514e0974e::t_a1df57cb71c67e 423,425-427
+  s_e196f514e0974e::t_ef08ce43626de2 250-269
+  s_e196f514e0974e::t_02fb29f40870bb 400,402-404
+  s_e196f514e0974e::t_31898cf2456f1a 87-88
+  s_e196f514e0974e::t_4f967d2afe69d0 372-390
+  s_e196f514e0974e::t_9cfe11eded045f 434-437
+  s_e196f514e0974e::t_11aa2292ba7738 227-231
+  s_e196f514e0974e::t_2c442974f2d4e4 47
+lib/db/conversations.ts
+  s_e196f514e0974e::t_b285fe6161d820 22-24
+  s_e196f514e0974e::t_2e48a4904ad88f 82-83
+.specify/feature.json
+  s_e196f514e0974e::t_ef8e563a732c96 1
+lib/generation/run.ts
+  s_e196f514e0974e::t_5c907daf29b4d7 205-246,249-258
+  s_e196f514e0974e::t_2b93e864ffd7da 247-248
+  s_e196f514e0974e::t_f905bbc017b5ab 15-16
+  s_e196f514e0974e::t_f90bb371abd1c8 362-363
+  s_e196f514e0974e::t_987e7090f196a3 64-76,95,97,99-110
+  s_e196f514e0974e::t_2d5f4198a38dba 196-197
+components/chat/SvgPreview.tsx
+  s_e196f514e0974e::t_95ab94caf71554 1-106
+specs/005-svg-icon/spec.md
+  s_e196f514e0974e::t_8251acda484c08 1-6,8-153
+  s_e196f514e0974e::t_11062f43773851 7
+lib/db/messages.ts
+  s_e196f514e0974e::t_1a1b274f8f8098 43-51,56-60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c7fd1174402009b5be391d64d1e599e49affa9fd",
+  "prompts": {},
+  "humans": {
+    "h_6465a203f88bd5": {
+      "author": "larry <xspanni@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_e196f514e0974e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "39694778-279d-426d-bc5e-67d1f3fec2d5",
+        "model": "default"
+      },
+      "human_author": "larry <xspanni@gmail.com>"
+    }
+  }
+}
