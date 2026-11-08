@@ -2,7 +2,7 @@ import { ulid } from "ulid";
 import { getEnv } from "@/lib/env";
 import { LocalFsStorage } from "@/lib/storage/local-fs";
 import { getDb } from "./client";
-import { assetFileUrl, type Asset } from "./types";
+import { assetFileUrl, type Asset, type AssetType } from "./types";
 
 type Row = {
   id: string;
@@ -15,8 +15,13 @@ type Row = {
   width: number | null;
   height: number | null;
   favorite: number;
+  asset_type: string;
   created_at: string;
 };
+
+function mapAssetType(value: string | undefined): AssetType {
+  return value === "icon" ? "icon" : "image";
+}
 
 function mapRow(row: Row): Asset {
   return {
@@ -30,12 +35,17 @@ function mapRow(row: Row): Asset {
     width: row.width,
     height: row.height,
     favorite: Boolean(row.favorite),
+    assetType: mapAssetType(row.asset_type),
     createdAt: row.created_at,
     fileUrl: assetFileUrl(row.id),
   };
 }
 
+const SELECT_COLS = `id, conversation_id, message_id, prompt, model, mime_type,
+              storage_key, width, height, favorite, asset_type, created_at`;
+
 export function insertAsset(input: {
+  id?: string;
   conversationId: string | null;
   messageId: string | null;
   prompt: string;
@@ -44,15 +54,17 @@ export function insertAsset(input: {
   storageKey: string;
   width?: number | null;
   height?: number | null;
+  assetType?: AssetType;
 }): Asset {
-  const id = ulid();
+  const id = input.id ?? ulid();
   const createdAt = new Date().toISOString();
+  const assetType = input.assetType === "icon" ? "icon" : "image";
   getDb()
     .prepare(
       `INSERT INTO assets (
          id, conversation_id, message_id, prompt, model, mime_type,
-         storage_key, width, height, favorite, created_at
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`,
+         storage_key, width, height, favorite, asset_type, created_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
     )
     .run(
       id,
@@ -64,6 +76,7 @@ export function insertAsset(input: {
       input.storageKey,
       input.width ?? null,
       input.height ?? null,
+      assetType,
       createdAt,
     );
   return getAsset(id)!;
@@ -71,27 +84,26 @@ export function insertAsset(input: {
 
 export function getAsset(id: string): Asset | null {
   const row = getDb()
-    .prepare(
-      `SELECT id, conversation_id, message_id, prompt, model, mime_type,
-              storage_key, width, height, favorite, created_at
-       FROM assets WHERE id = ?`,
-    )
+    .prepare(`SELECT ${SELECT_COLS} FROM assets WHERE id = ?`)
     .get(id) as Row | undefined;
   return row ? mapRow(row) : null;
 }
 
 export function listAssets(opts?: {
   favorite?: boolean;
+  type?: AssetType;
   limit?: number;
   cursor?: string;
 }): { items: Asset[]; nextCursor: string | null } {
   const limit = Math.min(Math.max(opts?.limit ?? 50, 1), 200);
   const params: unknown[] = [];
-  let sql = `SELECT id, conversation_id, message_id, prompt, model, mime_type,
-                    storage_key, width, height, favorite, created_at
-             FROM assets WHERE 1=1`;
+  let sql = `SELECT ${SELECT_COLS} FROM assets WHERE 1=1`;
   if (opts?.favorite === true) {
     sql += ` AND favorite = 1`;
+  }
+  if (opts?.type === "image" || opts?.type === "icon") {
+    sql += ` AND asset_type = ?`;
+    params.push(opts.type);
   }
   if (opts?.cursor) {
     sql += ` AND created_at < ?`;

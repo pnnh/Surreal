@@ -6,6 +6,7 @@ export type AgentMetaView = {
   kind?: string;
   clarifyingQuestions?: string[];
   suggestedPrompt?: string;
+  suggestedSizes?: number[];
   readyToGenerate?: boolean;
   assumptions?: string[];
 };
@@ -18,12 +19,15 @@ export function AgentReplyCard({
 }: {
   content: string;
   meta?: AgentMetaView | null;
-  onGenerate?: (prompt: string) => void;
+  onGenerate?: (prompt: string, sizes?: number[]) => void;
   generating?: boolean;
 }) {
   const { t } = useI18n();
   const questions = meta?.clarifyingQuestions?.filter(Boolean) ?? [];
   const suggested = meta?.suggestedPrompt?.trim() ?? "";
+  const sizes = (meta?.suggestedSizes ?? []).filter(
+    (n) => typeof n === "number" && n > 0,
+  );
   const assumptions = meta?.assumptions?.filter(Boolean) ?? [];
   const ready = Boolean(meta?.readyToGenerate && suggested);
 
@@ -53,6 +57,17 @@ export function AgentReplyCard({
         </div>
       )}
 
+      {sizes.length > 0 && (
+        <div>
+          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-stone-500">
+            {t.chat.suggestedSizes}
+          </p>
+          <p className="text-sm text-stone-700">
+            {sizes.map((s) => `${s}×${s}`).join(", ")}
+          </p>
+        </div>
+      )}
+
       {assumptions.length > 0 && (
         <div>
           <p className="mb-1 text-xs font-medium uppercase tracking-wide text-stone-500">
@@ -70,7 +85,7 @@ export function AgentReplyCard({
         <button
           type="button"
           disabled={generating}
-          onClick={() => onGenerate(suggested)}
+          onClick={() => onGenerate(suggested, sizes.length ? sizes : undefined)}
           className="rounded-md bg-amber-500 px-3 py-1.5 text-sm font-medium text-stone-950 hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {generating ? t.chat.generating : t.chat.generateNow}

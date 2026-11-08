@@ -60,6 +60,7 @@ export async function POST(request: Request) {
       userPrompt: prompt,
       locale,
       forceSkip,
+      kind: conversation.kind,
     });
 
     const meta: AgentMessageMeta = {
@@ -84,6 +85,8 @@ export async function POST(request: Request) {
         model: body.model || conversation.model,
         recordUserMessage: false,
         source: "skip",
+        sizes:
+          conversation.kind === "icon" ? reply.suggestedSizes : undefined,
       });
     }
 

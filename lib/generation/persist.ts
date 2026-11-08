@@ -1,8 +1,9 @@
 import path from "node:path";
 import { ulid } from "ulid";
 import { insertAsset } from "@/lib/db/assets";
-import type { Asset } from "@/lib/db/types";
+import type { Asset, AssetType } from "@/lib/db/types";
 import { getEnv } from "@/lib/env";
+import { buildAssetStorageKey } from "@/lib/storage/asset-path";
 import { LocalFsStorage } from "@/lib/storage/local-fs";
 
 function extFromMime(mime: string): string {
@@ -48,26 +49,39 @@ export async function persistGeneratedImages(input: {
   messageId: string;
   prompt: string;
   model: string;
+  assetType?: AssetType;
+  width?: number | null;
+  height?: number | null;
 }): Promise<Asset[]> {
   const env = getEnv();
   const assetsRoot = path.join(env.dataDir, "assets");
   const storage = new LocalFsStorage(assetsRoot);
+  const assetType = input.assetType === "icon" ? "icon" : "image";
   const saved: Asset[] = [];
 
   for (const url of input.urls) {
     const { mimeType, buffer } = await downloadImageBytes(url);
     const assetId = ulid();
     const ext = extFromMime(mimeType);
-    const storageKey = `${assetId}.${ext}`;
+    const storageKey = buildAssetStorageKey({
+      conversationId: input.conversationId,
+      assetType,
+      assetId,
+      ext,
+    });
     try {
       await storage.putObject(storageKey, buffer, mimeType);
       const asset = insertAsset({
+        id: assetId,
         conversationId: input.conversationId,
         messageId: input.messageId,
         prompt: input.prompt,
         model: input.model,
         mimeType,
         storageKey,
+        width: input.width ?? null,
+        height: input.height ?? null,
+        assetType,
       });
       saved.push(asset);
     } catch (err) {

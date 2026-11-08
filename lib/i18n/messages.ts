@@ -26,7 +26,9 @@ export type Messages = {
     customModel: string;
     missingKey: string;
     emptyHint: string;
+    emptyHintIcon: string;
     promptPlaceholder: string;
+    promptPlaceholderIcon: string;
     send: string;
     generating: string;
     thinking: string;
@@ -35,13 +37,21 @@ export type Messages = {
     skipClarification: string;
     generateNow: string;
     suggestedPrompt: string;
+    suggestedSizes: string;
     clarifyingQuestions: string;
     assumptions: string;
+    kindImage: string;
+    kindIcon: string;
+    newKindHint: string;
   };
   assets: {
     title: string;
     subtitle: string;
     favoritesOnly: string;
+    typeFilter: string;
+    typeAll: string;
+    typeImage: string;
+    typeIcon: string;
     refresh: string;
     loadFailed: string;
     favorite: string;
@@ -82,9 +92,9 @@ export const messages: Record<Locale, Messages> = {
       readOnly: "Read-only",
     },
     chat: {
-      title: "Image agent",
+      title: "Image & icon agent",
       subtitle:
-        "Clarify what you want with a lightweight grill-style agent, then generate game art.",
+        "Clarify what you want with a lightweight grill-style agent, then generate game art or app icons.",
       sessions: "Sessions",
       newSession: "New",
       untitled: "Untitled session",
@@ -94,7 +104,10 @@ export const messages: Record<Locale, Messages> = {
       missingKey: "POE_API_KEY is not set. See .env.example.",
       emptyHint:
         "Describe what you want. The agent will ask clarifying questions before generating.",
+      emptyHintIcon:
+        "Describe the icon (style, subject, sizes). The agent will clarify, then batch-generate bitmaps.",
       promptPlaceholder: "Describe the game art you want…",
+      promptPlaceholderIcon: "Describe the icon you want (e.g. cart, 32/64)…",
       send: "Send",
       generating: "Generating…",
       thinking: "Thinking…",
@@ -103,13 +116,21 @@ export const messages: Record<Locale, Messages> = {
       skipClarification: "Skip & generate",
       generateNow: "Generate now",
       suggestedPrompt: "Suggested prompt",
+      suggestedSizes: "Suggested sizes",
       clarifyingQuestions: "Clarifying questions",
       assumptions: "Assumptions",
+      kindImage: "Image",
+      kindIcon: "Icon",
+      newKindHint: "New sessions use the selected type above.",
     },
     assets: {
       title: "Asset library",
-      subtitle: "Browse, favorite, or delete saved images.",
+      subtitle: "Browse, favorite, or delete saved images and icons.",
       favoritesOnly: "Favorites only",
+      typeFilter: "Type",
+      typeAll: "All",
+      typeImage: "Images",
+      typeIcon: "Icons",
       refresh: "Refresh",
       loadFailed: "Failed to load",
       favorite: "Favorite",
@@ -117,7 +138,7 @@ export const messages: Record<Locale, Messages> = {
       delete: "Delete",
       deleteConfirm:
         "Delete this asset? The local file will be removed and cannot be recovered.",
-      empty: "No assets yet. Generate your first image in Chat.",
+      empty: "No assets yet. Generate your first image or icon in Chat.",
     },
     settings: {
       title: "Settings",
@@ -150,8 +171,8 @@ export const messages: Record<Locale, Messages> = {
       readOnly: "只读",
     },
     chat: {
-      title: "生图 Agent",
-      subtitle: "先用反向拷问澄清意图，确认后再生成游戏美术素材。",
+      title: "生图 / 生图标 Agent",
+      subtitle: "先用反向拷问澄清意图，确认后再生成游戏美术或应用图标。",
       sessions: "会话",
       newSession: "新建",
       untitled: "未命名会话",
@@ -160,7 +181,10 @@ export const messages: Record<Locale, Messages> = {
       customModel: "自定义生图模型 ID（可选）",
       missingKey: "未配置 POE_API_KEY，请参考 .env.example",
       emptyHint: "描述你想要的内容。Agent 会先澄清，再调用生图模型。",
+      emptyHintIcon:
+        "描述图标（风格、主体、尺寸）。Agent 会先澄清，再按尺寸批量生成位图。",
       promptPlaceholder: "描述你想生成的游戏美术素材…",
+      promptPlaceholderIcon: "描述想要的图标（例如购物车，32/64）…",
       send: "发送",
       generating: "生成中…",
       thinking: "思考中…",
@@ -169,20 +193,28 @@ export const messages: Record<Locale, Messages> = {
       skipClarification: "跳过澄清并生成",
       generateNow: "立即生成",
       suggestedPrompt: "建议提示词",
+      suggestedSizes: "建议尺寸",
       clarifyingQuestions: "澄清问题",
       assumptions: "假设",
+      kindImage: "图片",
+      kindIcon: "图标",
+      newKindHint: "新建会话将使用上方所选类型。",
     },
     assets: {
       title: "资产库",
-      subtitle: "浏览、收藏或删除已落盘的生成图片。",
+      subtitle: "浏览、收藏或删除已落盘的图片与图标。",
       favoritesOnly: "仅收藏",
+      typeFilter: "类型",
+      typeAll: "全部",
+      typeImage: "图片",
+      typeIcon: "图标",
       refresh: "刷新",
       loadFailed: "加载失败",
       favorite: "收藏",
       unfavorite: "取消收藏",
       delete: "删除",
       deleteConfirm: "确认删除该资产？将移除本地文件且不可恢复。",
-      empty: "暂无资产。去对话页生成第一张图吧。",
+      empty: "暂无资产。去对话页生成第一张图或图标吧。",
     },
     settings: {
       title: "设置",

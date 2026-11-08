@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS conversations (
   title TEXT,
   model TEXT NOT NULL,
   source TEXT NOT NULL DEFAULT 'web',
+  kind TEXT NOT NULL DEFAULT 'image',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -49,6 +50,7 @@ CREATE TABLE IF NOT EXISTS assets (
   width INTEGER,
   height INTEGER,
   favorite INTEGER NOT NULL DEFAULT 0,
+  asset_type TEXT NOT NULL DEFAULT 'image',
   created_at TEXT NOT NULL
 );
 
@@ -57,19 +59,33 @@ CREATE INDEX IF NOT EXISTS idx_assets_favorite_created
 
 CREATE INDEX IF NOT EXISTS idx_assets_conversation
   ON assets(conversation_id);
+
+CREATE INDEX IF NOT EXISTS idx_assets_type_created
+  ON assets(asset_type, created_at DESC);
 `;
 
+function runMigrations(db: DatabaseSync): void {
+  db.exec(SCHEMA);
+  migrateMessagesMeta(db);
+  migrateConversationSource(db);
+  migrateConversationKind(db);
+  migrateAssetType(db);
+}
+
 export function getDb(): DatabaseSync {
-  if (globalThis.__surrealDb) return globalThis.__surrealDb;
+  // Always re-run idempotent migrations: Turbopack HMR can keep a cached
+  // DatabaseSync from before new columns existed.
+  if (globalThis.__surrealDb) {
+    runMigrations(globalThis.__surrealDb);
+    return globalThis.__surrealDb;
+  }
 
   const { dataDir } = getEnv();
   fs.mkdirSync(path.join(dataDir, "assets"), { recursive: true });
   const dbPath = path.join(dataDir, "surreal.sqlite");
   const db = new DatabaseSync(dbPath);
   db.exec("PRAGMA foreign_keys = ON;");
-  db.exec(SCHEMA);
-  migrateMessagesMeta(db);
-  migrateConversationSource(db);
+  runMigrations(db);
 
   const row = db
     .prepare("SELECT id FROM generation_profile WHERE id = 'default'")
@@ -104,4 +120,30 @@ function migrateConversationSource(db: DatabaseSync): void {
       `ALTER TABLE conversations ADD COLUMN source TEXT NOT NULL DEFAULT 'web'`,
     );
   }
+}
+
+function migrateConversationKind(db: DatabaseSync): void {
+  const cols = db.prepare(`PRAGMA table_info(conversations)`).all() as Array<{
+    name: string;
+  }>;
+  if (!cols.some((c) => c.name === "kind")) {
+    db.exec(
+      `ALTER TABLE conversations ADD COLUMN kind TEXT NOT NULL DEFAULT 'image'`,
+    );
+  }
+}
+
+function migrateAssetType(db: DatabaseSync): void {
+  const cols = db.prepare(`PRAGMA table_info(assets)`).all() as Array<{
+    name: string;
+  }>;
+  if (!cols.some((c) => c.name === "asset_type")) {
+    db.exec(
+      `ALTER TABLE assets ADD COLUMN asset_type TEXT NOT NULL DEFAULT 'image'`,
+    );
+  }
+  db.exec(
+    `CREATE INDEX IF NOT EXISTS idx_assets_type_created
+     ON assets(asset_type, created_at DESC)`,
+  );
 }

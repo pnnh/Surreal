@@ -2,7 +2,7 @@ import { errorFromUnknown, jsonOk } from "@/lib/api/http";
 import { runGeneration } from "@/lib/generation/run";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +12,7 @@ export async function POST(request: Request) {
       model?: string;
       source?: "confirm" | "skip";
       agentMessageId?: string;
+      sizes?: number[];
     };
 
     if (!body.conversationId || !body.prompt?.trim()) {
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
           ? `[Generate] ${body.prompt.trim().slice(0, 120)}`
           : body.prompt,
       source,
+      sizes: Array.isArray(body.sizes) ? body.sizes : undefined,
     });
 
     return jsonOk({

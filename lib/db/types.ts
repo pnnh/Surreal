@@ -7,11 +7,16 @@ export type GenerationProfile = {
 
 export type ConversationSource = "web" | "mcp";
 
+export type ConversationKind = "image" | "icon";
+
+export type AssetType = "image" | "icon";
+
 export type Conversation = {
   id: string;
   title: string | null;
   model: string;
   source: ConversationSource;
+  kind: ConversationKind;
   createdAt: string;
   updatedAt: string;
 };
@@ -50,6 +55,7 @@ export type Asset = {
   width: number | null;
   height: number | null;
   favorite: boolean;
+  assetType: AssetType;
   createdAt: string;
   fileUrl: string;
 };

@@ -1,8 +1,10 @@
 import OpenAI from "openai";
+import type { ConversationKind } from "@/lib/db/types";
 import { getRecentMessages } from "@/lib/db/messages";
 import { getProfile } from "@/lib/db/profile";
 import { getEnv, requirePoeApiKey } from "@/lib/env";
 import { buildGrillSystemPrompt } from "./grill-system-prompt";
+import { buildIconGrillSystemPrompt } from "./icon-grill-system-prompt";
 import {
   fallbackAgentReply,
   parseAgentReplyJson,
@@ -14,6 +16,7 @@ export async function runAgentTurn(input: {
   userPrompt: string;
   locale: "en" | "zh";
   forceSkip: boolean;
+  kind?: ConversationKind;
 }): Promise<{ reply: AgentReply; agentModel: string }> {
   const env = getEnv();
   if (!env.poeConfigured) {
@@ -25,9 +28,15 @@ export async function runAgentTurn(input: {
   const agentModel = env.agentModel;
   const profile = getProfile();
   const recent = getRecentMessages(input.conversationId, env.contextLimit);
+  const kind = input.kind === "icon" ? "icon" : "image";
+
+  const systemPrompt =
+    kind === "icon"
+      ? buildIconGrillSystemPrompt(input.locale)
+      : buildGrillSystemPrompt(input.locale);
 
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-    { role: "system", content: buildGrillSystemPrompt(input.locale) },
+    { role: "system", content: systemPrompt },
   ];
 
   if (profile.systemPrompt.trim()) {
@@ -41,7 +50,9 @@ export async function runAgentTurn(input: {
     messages.push({
       role: "system",
       content:
-        "The user requested to SKIP further clarification this turn. Set readyToGenerate=true, produce the best suggestedPrompt from known information, and list assumptions.",
+        kind === "icon"
+          ? "The user requested to SKIP further clarification this turn. Set readyToGenerate=true, produce the best suggestedPrompt and suggestedSizes (default [16,32,64] if unknown) from known information, and list assumptions."
+          : "The user requested to SKIP further clarification this turn. Set readyToGenerate=true, produce the best suggestedPrompt from known information, and list assumptions.",
     });
   }
 
@@ -51,7 +62,6 @@ export async function runAgentTurn(input: {
     }
   }
 
-  // Ensure latest user turn is present
   const last = messages[messages.length - 1];
   if (!(last?.role === "user" && last.content === input.userPrompt)) {
     messages.push({ role: "user", content: input.userPrompt });
@@ -85,7 +95,13 @@ export async function runAgentTurn(input: {
       suggestedPrompt:
         reply.suggestedPrompt.trim() ||
         input.userPrompt.trim() ||
-        "game art concept, clear subject, clean composition",
+        (kind === "icon"
+          ? "simple flat app icon, transparent background, centered"
+          : "game art concept, clear subject, clean composition"),
+      suggestedSizes:
+        kind === "icon" && !reply.suggestedSizes.length
+          ? [16, 32, 64]
+          : reply.suggestedSizes,
     };
   }
 

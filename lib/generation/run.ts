@@ -6,6 +6,10 @@ import { insertMessage } from "@/lib/db/messages";
 import { getProfile } from "@/lib/db/profile";
 import type { Asset, Message } from "@/lib/db/types";
 import { getEnv } from "@/lib/env";
+import {
+  appendIconSizeToPrompt,
+  normalizeIconSizes,
+} from "@/lib/icons/sizes";
 import { resolveModelId } from "@/lib/models/allowlist";
 import { getImageProvider } from "@/lib/providers/poe";
 import { buildGenerationMessages } from "./context-window";
@@ -29,6 +33,7 @@ export async function runGeneration(input: {
   recordUserMessage?: boolean;
   userMessageContent?: string;
   source?: "confirm" | "skip";
+  sizes?: number[];
 }): Promise<GenerateResult> {
   const prompt = input.prompt.trim();
   if (!prompt) {
@@ -57,6 +62,7 @@ export async function runGeneration(input: {
     const model = resolveModelId(
       input.model || conversation.model || profile.defaultModel,
     );
+    const assetType = conversation.kind === "icon" ? "icon" : "image";
 
     const recordUser = input.recordUserMessage !== false;
     let userMessage: Message | null = null;
@@ -81,8 +87,18 @@ export async function runGeneration(input: {
       touchConversation(conversation.id, { model });
     }
 
-    // Gated confirm/skip: send only the final image prompt (avoid grill chatter).
-    // Legacy-style calls without source keep conversational context.
+    if (assetType === "icon") {
+      return await runIconBatch({
+        conversationId: conversation.id,
+        prompt,
+        model,
+        systemPrompt: profile.systemPrompt,
+        sizes: input.sizes,
+        userMessage,
+        source: input.source,
+      });
+    }
+
     const messages =
       input.source === "confirm" || input.source === "skip"
         ? ([
@@ -118,7 +134,7 @@ export async function runGeneration(input: {
           result.text ||
           "Model returned no image. Try another prompt or model.",
         model,
-        meta: { kind: "image_result", imagePrompt: prompt },
+        meta: { kind: "image_result", imagePrompt: prompt, assetType: "image" },
       });
       throw Object.assign(new Error("Model returned no image attachment"), {
         code: "NO_IMAGE",
@@ -137,7 +153,7 @@ export async function runGeneration(input: {
       role: "assistant",
       content: assistantText,
       model,
-      meta: { kind: "image_result", imagePrompt: prompt },
+      meta: { kind: "image_result", imagePrompt: prompt, assetType: "image" },
     });
 
     const assets = await persistGeneratedImages({
@@ -146,6 +162,7 @@ export async function runGeneration(input: {
       messageId: assistantMessage.id,
       prompt,
       model,
+      assetType: "image",
     });
 
     assistantMessage.assetIds = assets.map((a) => a.id);
@@ -158,4 +175,116 @@ export async function runGeneration(input: {
   } finally {
     releaseGenerationLock(conversation.id);
   }
+}
+
+async function runIconBatch(input: {
+  conversationId: string;
+  prompt: string;
+  model: string;
+  systemPrompt: string;
+  sizes?: number[];
+  userMessage: Message | null;
+  source?: "confirm" | "skip";
+}): Promise<GenerateResult> {
+  const { sizes, usedDefault } = normalizeIconSizes(input.sizes);
+  const provider = getImageProvider();
+  const assets: Asset[] = [];
+  const failures: string[] = [];
+
+  const assistantMessage = insertMessage({
+    conversationId: input.conversationId,
+    role: "assistant",
+    content: `Generating ${sizes.length} icon size(s)${usedDefault ? " (using default 16/32/64)" : ""}…`,
+    model: input.model,
+    meta: {
+      kind: "image_result",
+      imagePrompt: input.prompt,
+      sizes,
+      assetType: "icon",
+    },
+  });
+
+  for (const size of sizes) {
+    const sizedPrompt = appendIconSizeToPrompt(input.prompt, size);
+    const messages = [
+      ...(input.systemPrompt.trim()
+        ? [
+            {
+              role: "system" as const,
+              content: `${input.systemPrompt.trim()}\nPrefer transparent backgrounds for icons.`,
+            },
+          ]
+        : [
+            {
+              role: "system" as const,
+              content:
+                "Generate a flat UI/app icon with a transparent background, no photo realism, centered subject.",
+            },
+          ]),
+      { role: "user" as const, content: sizedPrompt },
+    ];
+
+    try {
+      const result = await provider.generate({
+        model: input.model,
+        messages,
+      });
+      if (!result.imageUrls.length) {
+        failures.push(`${size}px: no image returned`);
+        continue;
+      }
+      const saved = await persistGeneratedImages({
+        urls: result.imageUrls.slice(0, 1),
+        conversationId: input.conversationId,
+        messageId: assistantMessage.id,
+        prompt: sizedPrompt,
+        model: input.model,
+        assetType: "icon",
+        width: size,
+        height: size,
+      });
+      assets.push(...saved);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "failed";
+      failures.push(`${size}px: ${message}`);
+    }
+  }
+
+  if (!assets.length) {
+    throw Object.assign(
+      new Error(
+        failures.length
+          ? `Icon generation failed: ${failures.join("; ")}`
+          : "Model returned no icon images",
+      ),
+      {
+        code: "NO_IMAGE",
+        userMessage: input.userMessage,
+        assistantMessage,
+        assets: [] as Asset[],
+      },
+    );
+  }
+
+  const okSizes = assets
+    .map((a) => a.width)
+    .filter((w): w is number => typeof w === "number");
+  assistantMessage.content = [
+    `Generated ${assets.length} icon(s) at ${okSizes.join(", ") || "requested"} px with ${input.model}.`,
+    failures.length ? `Failed: ${failures.join("; ")}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+  assistantMessage.assetIds = assets.map((a) => a.id);
+  assistantMessage.assets = assets.map((a) => ({
+    id: a.id,
+    favorite: a.favorite,
+    fileUrl: a.fileUrl,
+  }));
+
+  return {
+    userMessage: input.userMessage,
+    assistantMessage,
+    assets,
+  };
 }

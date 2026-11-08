@@ -14,10 +14,13 @@ type ModelAllowlist = {
   allowCustomModelId: boolean;
 };
 
+type ConversationKind = "image" | "icon";
+
 type Conversation = {
   id: string;
   title: string | null;
   model: string;
+  kind?: ConversationKind;
   updatedAt: string;
 };
 
@@ -35,6 +38,8 @@ export function ChatWorkspace() {
   const [models, setModels] = useState<ModelAllowlist | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeKind, setActiveKind] = useState<ConversationKind>("image");
+  const [draftKind, setDraftKind] = useState<ConversationKind>("image");
   const [messages, setMessages] = useState<Message[]>([]);
   const [model, setModel] = useState("GPT-Image-1.5");
   const [customModel, setCustomModel] = useState("");
@@ -51,15 +56,24 @@ export function ChatWorkspace() {
 
   const refreshConversations = useCallback(async () => {
     const res = await fetch("/api/conversations");
-    const data = await res.json();
+    const data = (await res.json().catch(() => ({}))) as {
+      items?: Conversation[];
+      error?: { message?: string };
+    };
+    if (!res.ok) {
+      setError(data.error?.message || t.chat.generateFailed);
+      return;
+    }
     setConversations(data.items ?? []);
-  }, []);
+  }, [t.chat.generateFailed]);
 
   const loadConversation = useCallback(async (id: string) => {
     const res = await fetch(`/api/conversations/${id}`);
     if (!res.ok) return;
     const data = await res.json();
     setActiveId(id);
+    setActiveKind(data.kind === "icon" ? "icon" : "image");
+    setDraftKind(data.kind === "icon" ? "icon" : "image");
     setMessages(data.messages ?? []);
     setModel(data.model || "GPT-Image-1.5");
   }, []);
@@ -77,28 +91,32 @@ export function ChatWorkspace() {
     })();
   }, [refreshConversations]);
 
-  async function ensureConversation(): Promise<string> {
-    if (activeId) return activeId;
+  async function createConversation(
+    kind: ConversationKind,
+  ): Promise<Conversation> {
     const res = await fetch("/api/conversations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: selectedModel }),
+      body: JSON.stringify({ model: selectedModel, kind }),
     });
-    const data = await res.json();
+    return (await res.json()) as Conversation;
+  }
+
+  async function ensureConversation(): Promise<string> {
+    if (activeId) return activeId;
+    const data = await createConversation(draftKind);
     setActiveId(data.id);
+    setActiveKind(data.kind === "icon" ? "icon" : draftKind);
     await refreshConversations();
     return data.id as string;
   }
 
-  async function onNewChat() {
+  async function onNewChat(kind: ConversationKind = draftKind) {
     setError(null);
-    const res = await fetch("/api/conversations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: selectedModel }),
-    });
-    const data = await res.json();
+    const data = await createConversation(kind);
     setActiveId(data.id);
+    setActiveKind(kind);
+    setDraftKind(kind);
     setMessages([]);
     await refreshConversations();
   }
@@ -156,7 +174,11 @@ export function ChatWorkspace() {
     }
   }
 
-  async function onGenerateNow(agentMessageId: string, imagePrompt: string) {
+  async function onGenerateNow(
+    agentMessageId: string,
+    imagePrompt: string,
+    sizes?: number[],
+  ) {
     if (!activeId || busy || generatingId) return;
     setGeneratingId(agentMessageId);
     setError(null);
@@ -170,6 +192,7 @@ export function ChatWorkspace() {
           model: selectedModel,
           source: "confirm",
           agentMessageId,
+          sizes: activeKind === "icon" ? sizes : undefined,
         }),
       });
       const data = await res.json();
@@ -188,18 +211,50 @@ export function ChatWorkspace() {
     }
   }
 
+  const kindLabel = (kind?: ConversationKind) =>
+    kind === "icon" ? t.chat.kindIcon : t.chat.kindImage;
+
   return (
     <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
       <aside className="rounded-xl border border-stone-200 bg-white p-3 shadow-sm">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-medium text-stone-700">{t.chat.sessions}</h2>
-          <button
-            type="button"
-            onClick={() => void onNewChat()}
-            className="rounded-md bg-stone-100 px-2 py-1 text-xs text-stone-800 hover:bg-stone-200"
-          >
-            {t.chat.newSession}
-          </button>
+        <div className="mb-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-medium text-stone-700">
+              {t.chat.sessions}
+            </h2>
+            <button
+              type="button"
+              onClick={() => void onNewChat(draftKind)}
+              className="rounded-md bg-stone-100 px-2 py-1 text-xs text-stone-800 hover:bg-stone-200"
+            >
+              {t.chat.newSession}
+            </button>
+          </div>
+          <div className="flex gap-1 rounded-md bg-stone-100 p-0.5">
+            <button
+              type="button"
+              onClick={() => setDraftKind("image")}
+              className={`flex-1 rounded px-2 py-1 text-xs ${
+                draftKind === "image"
+                  ? "bg-white text-stone-900 shadow-sm"
+                  : "text-stone-500"
+              }`}
+            >
+              {t.chat.kindImage}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDraftKind("icon")}
+              className={`flex-1 rounded px-2 py-1 text-xs ${
+                draftKind === "icon"
+                  ? "bg-white text-stone-900 shadow-sm"
+                  : "text-stone-500"
+              }`}
+            >
+              {t.chat.kindIcon}
+            </button>
+          </div>
+          <p className="text-[11px] text-stone-400">{t.chat.newKindHint}</p>
         </div>
         <ul className="space-y-1">
           {conversations.map((c) => (
@@ -213,6 +268,9 @@ export function ChatWorkspace() {
                     : "text-stone-600 hover:bg-stone-100"
                 }`}
               >
+                <span className="mr-1 text-[10px] uppercase tracking-wide text-stone-400">
+                  {kindLabel(c.kind)}
+                </span>
                 {c.title || t.chat.untitled}
               </button>
             </li>
@@ -227,6 +285,9 @@ export function ChatWorkspace() {
 
       <section className="flex min-h-[70vh] flex-col rounded-xl border border-stone-200 bg-white shadow-sm">
         <div className="flex flex-wrap items-center gap-2 border-b border-stone-200 p-3">
+          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600">
+            {kindLabel(activeId ? activeKind : draftKind)}
+          </span>
           <label className="text-xs text-stone-500">{t.chat.model}</label>
           <select
             value={model}
@@ -257,7 +318,8 @@ export function ChatWorkspace() {
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
           {messages.map((m) => {
             const meta = m.meta as AgentMetaView | null | undefined;
-            const isAgent = m.role === "assistant" && meta?.kind === "agent_reply";
+            const isAgent =
+              m.role === "assistant" && meta?.kind === "agent_reply";
             return (
               <div
                 key={m.id}
@@ -272,8 +334,8 @@ export function ChatWorkspace() {
                     content={m.content}
                     meta={meta}
                     generating={generatingId === m.id}
-                    onGenerate={(imagePrompt) =>
-                      void onGenerateNow(m.id, imagePrompt)
+                    onGenerate={(imagePrompt, sizes) =>
+                      void onGenerateNow(m.id, imagePrompt, sizes)
                     }
                   />
                 ) : (
@@ -305,7 +367,11 @@ export function ChatWorkspace() {
             );
           })}
           {!messages.length && (
-            <p className="text-sm text-stone-400">{t.chat.emptyHint}</p>
+            <p className="text-sm text-stone-400">
+              {activeKind === "icon" || (!activeId && draftKind === "icon")
+                ? t.chat.emptyHintIcon
+                : t.chat.emptyHint}
+            </p>
           )}
         </div>
 
@@ -322,7 +388,11 @@ export function ChatWorkspace() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               rows={2}
-              placeholder={t.chat.promptPlaceholder}
+              placeholder={
+                activeKind === "icon" || (!activeId && draftKind === "icon")
+                  ? t.chat.promptPlaceholderIcon
+                  : t.chat.promptPlaceholder
+              }
               className="flex-1 resize-none rounded-md border border-stone-300 bg-white px-3 py-2 text-sm"
               disabled={busy || Boolean(generatingId)}
             />

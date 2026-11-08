@@ -4,6 +4,7 @@ export const agentReplySchema = z.object({
   assistantMessage: z.string().min(1),
   clarifyingQuestions: z.array(z.string()).max(4).default([]),
   suggestedPrompt: z.string().default(""),
+  suggestedSizes: z.array(z.number().int().positive()).max(12).default([]),
   readyToGenerate: z.boolean().default(false),
   assumptions: z.array(z.string()).default([]),
 });
@@ -23,6 +24,8 @@ export type UserMessageMeta = {
 export type ImageResultMeta = {
   kind: "image_result";
   imagePrompt?: string;
+  sizes?: number[];
+  assetType?: "image" | "icon";
 };
 
 export type MessageMeta = AgentMessageMeta | UserMessageMeta | ImageResultMeta;
@@ -47,6 +50,7 @@ export function fallbackAgentReply(rawText: string): AgentReply {
       "I need a bit more detail before generating. What subject, style, and view do you want?",
     clarifyingQuestions: [],
     suggestedPrompt: "",
+    suggestedSizes: [],
     readyToGenerate: false,
     assumptions: [],
   };

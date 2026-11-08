@@ -1,0 +1,108 @@
+# OpenAPI-ish contract sketch — Surreal Icon Agent (004)
+openapi: 3.0.3
+info:
+  title: Surreal Icon Agent API
+  version: 0.1.0
+paths:
+  /api/conversations:
+    post:
+      summary: Create conversation with kind
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  nullable: true
+                model:
+                  type: string
+                kind:
+                  type: string
+                  enum: [image, icon]
+                  default: image
+      responses:
+        "200":
+          description: Created conversation includes kind
+    get:
+      summary: List conversations (web default)
+      parameters:
+        - in: query
+          name: source
+          schema:
+            type: string
+            enum: [web, mcp]
+        - in: query
+          name: kind
+          schema:
+            type: string
+            enum: [image, icon]
+      responses:
+        "200":
+          description: Conversation list
+
+  /api/chat:
+    post:
+      summary: Agent turn (image or icon by conversation.kind)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [conversationId, content]
+              properties:
+                conversationId: { type: string }
+                content: { type: string }
+                skipClarification: { type: boolean }
+                locale: { type: string, enum: [en, zh] }
+      responses:
+        "200":
+          description: |
+            Assistant message; meta may include suggestedSizes when kind=icon
+
+  /api/generate:
+    post:
+      summary: Gated generation; icon sessions may pass sizes[]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [conversationId, prompt, source]
+              properties:
+                conversationId: { type: string }
+                prompt: { type: string }
+                model: { type: string }
+                source: { type: string, enum: [confirm, skip] }
+                sizes:
+                  type: array
+                  items: { type: integer, minimum: 16, maximum: 1024 }
+                  maxItems: 12
+                  description: Required/used when conversation.kind=icon
+      responses:
+        "200":
+          description: Assistant message + assets (multiple for icon batch)
+
+  /api/assets:
+    get:
+      summary: List assets with optional type filter
+      parameters:
+        - in: query
+          name: favorite
+          schema: { type: boolean }
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [image, icon]
+        - in: query
+          name: limit
+          schema: { type: integer }
+        - in: query
+          name: cursor
+          schema: { type: string }
+      responses:
+        "200":
+          description: Page of assets including assetType

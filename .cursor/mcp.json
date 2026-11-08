@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "surreal-image": {
+      "type": "stdio",
+      "command": "pnpm",
+      "args": ["mcp"],
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  }
+}

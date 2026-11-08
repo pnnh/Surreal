@@ -8,8 +8,11 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { getEnv } from "../lib/env";
+import { loadDotEnv } from "../lib/load-dotenv";
 import { getModelAllowlist } from "../lib/models/allowlist";
-import { mcpGenerateImage } from "../lib/mcp/generate";
+import { mcpGenerateIcon, mcpGenerateImage } from "../lib/mcp/generate";
+
+loadDotEnv();
 
 const server = new McpServer({
   name: "surreal-image",
@@ -59,6 +62,58 @@ server.registerTool(
 
     try {
       const result = await mcpGenerateImage({ prompt, model });
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Generation failed";
+      return {
+        isError: true,
+        content: [{ type: "text", text: message }],
+      };
+    }
+  },
+);
+
+server.registerTool(
+  "generate_icon",
+  {
+    title: "Generate icon",
+    description:
+      "Generate bitmap app/web icons at one or more pixel sizes (no clarification). Saves under conversation icons/ directory. Default sizes: 16, 32, 64.",
+    inputSchema: {
+      prompt: z.string().min(1).describe("Icon generation prompt"),
+      sizes: z
+        .array(z.number().int().positive())
+        .max(12)
+        .optional()
+        .describe("Pixel edge lengths (default [16,32,64], max 12)"),
+      model: z
+        .string()
+        .optional()
+        .describe("Optional Poe image model id (default GPT-Image-1.5)"),
+    },
+  },
+  async ({ prompt, sizes, model }) => {
+    if (!getEnv().poeConfigured) {
+      return {
+        isError: true,
+        content: [
+          {
+            type: "text",
+            text: "POE_API_KEY is not configured in the environment.",
+          },
+        ],
+      };
+    }
+
+    try {
+      const result = await mcpGenerateIcon({ prompt, sizes, model });
       return {
         content: [
           {

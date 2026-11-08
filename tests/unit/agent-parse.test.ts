@@ -27,6 +27,20 @@ describe("parseAgentReplyJson", () => {
     expect(reply?.suggestedPrompt).toBe("a cat");
   });
 
+  it("parses suggestedSizes for icons", () => {
+    const reply = parseAgentReplyJson(
+      JSON.stringify({
+        assistantMessage: "Ready for icon",
+        clarifyingQuestions: [],
+        suggestedPrompt: "flat cart icon, transparent background",
+        suggestedSizes: [16, 32, 64],
+        readyToGenerate: true,
+        assumptions: [],
+      }),
+    );
+    expect(reply?.suggestedSizes).toEqual([16, 32, 64]);
+  });
+
   it("falls back on invalid json", () => {
     expect(parseAgentReplyJson("not json")).toBeNull();
     const fb = fallbackAgentReply("please clarify");

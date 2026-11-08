@@ -10,7 +10,10 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "mcp": "tsx --tsconfig tsconfig.json mcp/server.ts"
+    "mcp": "tsx --tsconfig tsconfig.json mcp/server.ts",
+    "mcp:verify": "tsx --tsconfig tsconfig.json scripts/verify-mcp-generate.ts",
+    "mcp:verify-icon": "tsx --tsconfig tsconfig.json scripts/verify-mcp-icon.ts",
+    "mcp:stdio": "tsx --tsconfig tsconfig.json scripts/verify-mcp-stdio.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
