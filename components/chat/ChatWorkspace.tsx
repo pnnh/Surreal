@@ -5,6 +5,7 @@ import {
   AgentReplyCard,
   type AgentMetaView,
 } from "@/components/chat/AgentReplyCard";
+import { FavoriteImage } from "@/components/chat/FavoriteImage";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 type ModelAllowlist = {
@@ -25,6 +26,7 @@ type Message = {
   role: "user" | "assistant" | "system";
   content: string;
   assetIds?: string[];
+  assets?: Array<{ id: string; favorite: boolean; fileUrl: string }>;
   meta?: AgentMetaView | Record<string, unknown> | null;
 };
 
@@ -277,15 +279,22 @@ export function ChatWorkspace() {
                 ) : (
                   <>
                     <p className="whitespace-pre-wrap">{m.content}</p>
-                    {!!m.assetIds?.length && (
+                    {!!(m.assets?.length || m.assetIds?.length) && (
                       <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                        {m.assetIds.map((id) => (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            key={id}
-                            src={`/api/assets/${id}/file`}
+                        {(m.assets?.length
+                          ? m.assets
+                          : (m.assetIds ?? []).map((id) => ({
+                              id,
+                              favorite: false,
+                              fileUrl: `/api/assets/${id}/file`,
+                            }))
+                        ).map((asset) => (
+                          <FavoriteImage
+                            key={asset.id}
+                            assetId={asset.id}
+                            src={asset.fileUrl}
                             alt={t.chat.imageAlt}
-                            className="max-h-80 w-full rounded-md object-contain bg-stone-200/60"
+                            favorite={asset.favorite}
                           />
                         ))}
                       </div>

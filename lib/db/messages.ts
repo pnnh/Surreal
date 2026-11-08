@@ -1,7 +1,7 @@
 import { ulid } from "ulid";
 import type { MessageMeta } from "@/lib/agents/types";
 import { getDb } from "./client";
-import type { Message, MessageRole } from "./types";
+import { assetFileUrl, type Message, type MessageAssetSummary, type MessageRole } from "./types";
 
 type Row = {
   id: string;
@@ -23,7 +23,7 @@ function parseMeta(raw: string | null): Message["meta"] {
   }
 }
 
-function mapRow(row: Row, assetIds: string[] = []): Message {
+function mapRow(row: Row, assets: MessageAssetSummary[] = []): Message {
   return {
     id: row.id,
     conversationId: row.conversation_id,
@@ -32,16 +32,21 @@ function mapRow(row: Row, assetIds: string[] = []): Message {
     model: row.model,
     sequence: row.sequence,
     createdAt: row.created_at,
-    assetIds,
+    assetIds: assets.map((a) => a.id),
+    assets,
     meta: parseMeta(row.meta_json),
   };
 }
 
-function assetIdsForMessage(messageId: string): string[] {
+function assetsForMessage(messageId: string): MessageAssetSummary[] {
   const rows = getDb()
-    .prepare(`SELECT id FROM assets WHERE message_id = ?`)
-    .all(messageId) as { id: string }[];
-  return rows.map((r) => r.id);
+    .prepare(`SELECT id, favorite FROM assets WHERE message_id = ?`)
+    .all(messageId) as { id: string; favorite: number }[];
+  return rows.map((r) => ({
+    id: r.id,
+    favorite: Boolean(r.favorite),
+    fileUrl: assetFileUrl(r.id),
+  }));
 }
 
 export function listMessagesForConversation(conversationId: string): Message[] {
@@ -51,7 +56,7 @@ export function listMessagesForConversation(conversationId: string): Message[] {
        FROM messages WHERE conversation_id = ? ORDER BY sequence ASC`,
     )
     .all(conversationId) as Row[];
-  return rows.map((row) => mapRow(row, assetIdsForMessage(row.id)));
+  return rows.map((row) => mapRow(row, assetsForMessage(row.id)));
 }
 
 export function nextSequence(conversationId: string): number {
@@ -98,6 +103,7 @@ export function insertMessage(input: {
     sequence,
     createdAt,
     assetIds: [],
+    assets: [],
     meta: input.meta ?? null,
   };
 }
@@ -115,5 +121,5 @@ export function getRecentMessages(
        LIMIT ?`,
     )
     .all(conversationId, limit) as Row[];
-  return rows.reverse().map((row) => mapRow(row, assetIdsForMessage(row.id)));
+  return rows.reverse().map((row) => mapRow(row, assetsForMessage(row.id)));
 }

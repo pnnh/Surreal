@@ -12,6 +12,7 @@ export function AppNav() {
   const links = [
     { href: "/", label: t.nav.chat },
     { href: "/assets", label: t.nav.assets },
+    { href: "/mcp-sessions", label: t.nav.mcpSessions },
     { href: "/settings", label: t.nav.settings },
   ];
 

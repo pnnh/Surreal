@@ -1,6 +1,6 @@
 # Surreal
 
-AGPL-3.0 开源的自用游戏美术资产生成工作台。通过 Poe API 提供**轻量生图 Agent**：先反向拷问澄清意图，确认后再调用生图模型。
+AGPL-3.0 开源的自用游戏美术资产生成工作台。通过 Poe API 提供 Web 生图 Agent，以及供其它 Agent 调用的 **MCP 直出图服务**。
 
 ## 快速开始
 
@@ -15,12 +15,42 @@ pnpm dev
 
 ## 功能
 
-- 生图 Agent（默认 `GPT-4o-Mini`）：多轮澄清 + 建议提示词
-- 「立即生成」确认门闩；「跳过澄清」按钮 / 自然语言强制出图
-- 生图模型白名单（默认 `GPT-Image-1.5`）与本地资产库（收藏/删除）
-- 中英 UI（浏览器语言检测，默认英语）
+- Web 生图 Agent（默认 `GPT-4o-Mini`）：反向拷问 → 确认后生图
+- 对话内图片右下角收藏；资产库浏览/筛选/删除
+- **MCP**（无反问、无认证 MVP）：`pnpm mcp`
+- MCP 会话只读管理页：`/mcp-sessions`
 
-活跃规格：`specs/002-image-agent-grill/`
+活跃规格：`specs/003-mcp-image-service/`
+
+## MCP
+
+```bash
+pnpm mcp
+```
+
+工具：
+
+- `generate_image` — 直接按提示词生图并落盘（创建 `source=mcp` 会话）
+- `list_image_models` — 返回生图模型白名单
+
+Cursor / Claude Desktop 示例配置：
+
+```json
+{
+  "mcpServers": {
+    "surreal-image": {
+      "command": "pnpm",
+      "args": ["mcp"],
+      "cwd": "/absolute/path/to/Surreal",
+      "env": {
+        "POE_API_KEY": "your-key"
+      }
+    }
+  }
+}
+```
+
+> MVP 无认证，仅在本机/受信环境使用。
 
 ## 开发
 

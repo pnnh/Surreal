@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS conversations (
   id TEXT PRIMARY KEY,
   title TEXT,
   model TEXT NOT NULL,
+  source TEXT NOT NULL DEFAULT 'web',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -68,6 +69,7 @@ export function getDb(): DatabaseSync {
   db.exec("PRAGMA foreign_keys = ON;");
   db.exec(SCHEMA);
   migrateMessagesMeta(db);
+  migrateConversationSource(db);
 
   const row = db
     .prepare("SELECT id FROM generation_profile WHERE id = 'default'")
@@ -90,5 +92,16 @@ function migrateMessagesMeta(db: DatabaseSync): void {
   }>;
   if (!cols.some((c) => c.name === "meta_json")) {
     db.exec(`ALTER TABLE messages ADD COLUMN meta_json TEXT`);
+  }
+}
+
+function migrateConversationSource(db: DatabaseSync): void {
+  const cols = db.prepare(`PRAGMA table_info(conversations)`).all() as Array<{
+    name: string;
+  }>;
+  if (!cols.some((c) => c.name === "source")) {
+    db.exec(
+      `ALTER TABLE conversations ADD COLUMN source TEXT NOT NULL DEFAULT 'web'`,
+    );
   }
 }

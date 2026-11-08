@@ -5,12 +5,21 @@ export type GenerationProfile = {
   updatedAt: string;
 };
 
+export type ConversationSource = "web" | "mcp";
+
 export type Conversation = {
   id: string;
   title: string | null;
   model: string;
+  source: ConversationSource;
   createdAt: string;
   updatedAt: string;
+};
+
+export type MessageAssetSummary = {
+  id: string;
+  favorite: boolean;
+  fileUrl: string;
 };
 
 export type MessageRole = "user" | "assistant" | "system";
@@ -26,6 +35,7 @@ export type Message = {
   sequence: number;
   createdAt: string;
   assetIds?: string[];
+  assets?: MessageAssetSummary[];
   meta?: MessageMeta | null;
 };
 

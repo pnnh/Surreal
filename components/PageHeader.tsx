@@ -2,7 +2,7 @@
 
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 
-type PageKey = "chat" | "assets" | "settings";
+type PageKey = "chat" | "assets" | "settings" | "mcp";
 
 export function PageHeader({ page }: { page: PageKey }) {
   const { t } = useI18n();

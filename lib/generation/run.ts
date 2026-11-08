@@ -149,6 +149,11 @@ export async function runGeneration(input: {
     });
 
     assistantMessage.assetIds = assets.map((a) => a.id);
+    assistantMessage.assets = assets.map((a) => ({
+      id: a.id,
+      favorite: a.favorite,
+      fileUrl: a.fileUrl,
+    }));
     return { userMessage, assistantMessage, assets };
   } finally {
     releaseGenerationLock(conversation.id);

@@ -4,8 +4,16 @@ export type Messages = {
   nav: {
     chat: string;
     assets: string;
+    mcpSessions: string;
     settings: string;
     language: string;
+  };
+  mcp: {
+    title: string;
+    subtitle: string;
+    empty: string;
+    session: string;
+    readOnly: string;
   };
   chat: {
     title: string;
@@ -61,8 +69,17 @@ export const messages: Record<Locale, Messages> = {
     nav: {
       chat: "Chat",
       assets: "Assets",
+      mcpSessions: "MCP",
       settings: "Settings",
       language: "Language",
+    },
+    mcp: {
+      title: "MCP sessions",
+      subtitle:
+        "Read-only view of image sessions created via the MCP server. You can favorite images here.",
+      empty: "No MCP sessions yet.",
+      session: "Session",
+      readOnly: "Read-only",
     },
     chat: {
       title: "Image agent",
@@ -121,8 +138,16 @@ export const messages: Record<Locale, Messages> = {
     nav: {
       chat: "对话",
       assets: "资产库",
+      mcpSessions: "MCP",
       settings: "设置",
       language: "语言",
+    },
+    mcp: {
+      title: "MCP 会话",
+      subtitle: "只读查看由 MCP 服务创建的生图会话，可在此收藏图片。",
+      empty: "暂无 MCP 会话。",
+      session: "会话",
+      readOnly: "只读",
     },
     chat: {
       title: "生图 Agent",

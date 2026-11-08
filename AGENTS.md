@@ -26,6 +26,8 @@
 - MVP：Poe 文生图对话 + 本地资产存储/收藏 + 可调系统提示词
 - 非 MVP：3D/骨骼产品化、多用户、S3 上线（仅预留抽象）
 
-**当前活动功能**：见 `.specify/feature.json` → `specs/002-image-agent-grill/`（轻量生图 Agent / 反向拷问）
+**当前活动功能**：见 `.specify/feature.json` → `specs/003-mcp-image-service/`（MCP 直出图 + 聊天收藏 + MCP 会话页）
 
-**已完成基线**：`specs/001-text-to-image-mvp/`（文生图对话 + 资产库 MVP）
+**已完成基线**：
+- `specs/001-text-to-image-mvp/`（文生图对话 + 资产库）
+- `specs/002-image-agent-grill/`（轻量生图 Agent / 反向拷问）
