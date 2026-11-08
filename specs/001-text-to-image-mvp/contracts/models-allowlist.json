@@ -1,0 +1,21 @@
+{
+  "defaultModel": "GPT-Image-1.5",
+  "models": [
+    {
+      "id": "GPT-Image-1.5",
+      "label": "GPT Image 1.5",
+      "enabled": true
+    },
+    {
+      "id": "FLUX-pro-1.1",
+      "label": "FLUX Pro 1.1",
+      "enabled": true
+    },
+    {
+      "id": "Imagen-4",
+      "label": "Imagen 4",
+      "enabled": true
+    }
+  ],
+  "allowCustomModelId": true
+}

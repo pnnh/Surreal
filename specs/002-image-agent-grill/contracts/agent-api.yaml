@@ -1,0 +1,118 @@
+openapi: 3.1.0
+info:
+  title: Surreal Image Agent API
+  version: 0.2.0
+  description: Chat agent with grill-style clarification; gated image generation
+servers:
+  - url: http://127.0.0.1:3000/api
+paths:
+  /chat:
+    post:
+      summary: Send user message to text agent (does not call image model)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: Agent reply persisted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+        "400":
+          description: Bad request / not configured
+        "502":
+          description: Upstream Poe error
+
+  /generate:
+    post:
+      summary: Gated image generation after confirm or skip
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateGateRequest"
+      responses:
+        "200":
+          description: Image generation result
+        "400":
+          description: Missing prompt or not allowed
+        "502":
+          description: Image upstream error
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      required: [conversationId, prompt]
+      properties:
+        conversationId: { type: string }
+        prompt: { type: string, minLength: 1 }
+        skipClarification:
+          type: boolean
+          default: false
+          description: Force end grilling and generate in this turn
+        locale:
+          type: string
+          enum: [en, zh]
+          description: UI locale for agent language
+
+    AgentMeta:
+      type: object
+      required: [readyToGenerate, clarifyingQuestions, suggestedPrompt]
+      properties:
+        kind: { type: string, enum: [agent_reply] }
+        clarifyingQuestions:
+          type: array
+          maxItems: 4
+          items: { type: string }
+        suggestedPrompt: { type: string }
+        readyToGenerate: { type: boolean }
+        assumptions:
+          type: array
+          items: { type: string }
+        agentModel: { type: string }
+
+    ChatResponse:
+      type: object
+      required: [userMessage, assistantMessage, agent, generated]
+      properties:
+        userMessage:
+          type: object
+          description: Persisted user message
+        assistantMessage:
+          type: object
+          description: Persisted agent visible reply
+        agent:
+          $ref: "#/components/schemas/AgentMeta"
+        generated:
+          description: Present only when skipClarification caused inline generation
+          type: object
+          nullable: true
+          properties:
+            assets:
+              type: array
+              items: { type: object }
+            assistantMessage:
+              type: object
+
+    GenerateGateRequest:
+      type: object
+      required: [conversationId, prompt, source]
+      properties:
+        conversationId: { type: string }
+        prompt:
+          type: string
+          minLength: 1
+          description: Final image prompt (usually agent suggestedPrompt)
+        model: { type: string }
+        source:
+          type: string
+          enum: [confirm, skip]
+        agentMessageId:
+          type: string
+          description: Optional link to the agent reply being confirmed

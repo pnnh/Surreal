@@ -1,0 +1,52 @@
+# Secrets & local env
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+secrets/
+
+# Local runtime data (assets, sqlite, uploads)
+data/
+storage/
+uploads/
+*.db
+*.sqlite
+*.sqlite3
+
+# Dependencies & build
+node_modules/
+.pnpm-store/
+.next/
+out/
+dist/
+build/
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage/
+.turbo/
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.swo
+
+# Logs & temp
+*.log
+tmp/
+temp/
+.cache/
+
+# Agent local artifacts that may contain private state
+.claude/settings.local.json
+.claude/*.local.*

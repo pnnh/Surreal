@@ -1,0 +1,385 @@
+openapi: 3.1.0
+info:
+  title: Surreal MVP API
+  version: 0.1.0
+  description: 文生图对话、资产库与全局生成配置（单用户本地）
+servers:
+  - url: http://127.0.0.1:3000/api
+paths:
+  /health:
+    get:
+      summary: 健康检查与密钥配置状态（不回显密钥）
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, poeConfigured]
+                properties:
+                  ok: { type: boolean }
+                  poeConfigured: { type: boolean }
+
+  /models:
+    get:
+      summary: 返回精简模型白名单与默认模型
+      responses:
+        "200":
+          description: Allowlist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelAllowlist"
+
+  /profile:
+    get:
+      summary: 获取全局 GenerationProfile
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerationProfile"
+    put:
+      summary: 更新全局系统提示词与默认模型
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerationProfileUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerationProfile"
+
+  /conversations:
+    get:
+      summary: 列出会话
+      responses:
+        "200":
+          description: Conversation list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+    post:
+      summary: 创建会话
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                model: { type: string }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+
+  /conversations/{conversationId}:
+    get:
+      summary: 会话详情（含消息）
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: 删除会话（消息删除；关联资产策略：保留资产但断开 message 关联或级联——实现选保留资产）
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+      responses:
+        "204":
+          description: Deleted
+
+  /generate:
+    post:
+      summary: 在指定会话中发起文生图（组装上下文并调用 Poe）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateRequest"
+      responses:
+        "200":
+          description: 生成成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "502":
+          description: Poe upstream error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /assets:
+    get:
+      summary: 资产库列表
+      parameters:
+        - name: favorite
+          in: query
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: cursor
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Asset page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetPage"
+
+  /assets/{assetId}:
+    get:
+      summary: 资产元数据
+      parameters:
+        - $ref: "#/components/parameters/AssetId"
+      responses:
+        "200":
+          description: Asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Asset"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: 硬删除资产（元数据 + 本地文件）
+      parameters:
+        - $ref: "#/components/parameters/AssetId"
+        - name: confirm
+          in: query
+          required: true
+          schema:
+            type: boolean
+            enum: [true]
+      responses:
+        "204":
+          description: Deleted
+        "400":
+          description: Missing confirm=true
+
+  /assets/{assetId}/favorite:
+    put:
+      summary: 设置收藏状态
+      parameters:
+        - $ref: "#/components/parameters/AssetId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [favorite]
+              properties:
+                favorite: { type: boolean }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Asset"
+
+  /assets/{assetId}/file:
+    get:
+      summary: 读取已落盘图像二进制
+      parameters:
+        - $ref: "#/components/parameters/AssetId"
+      responses:
+        "200":
+          description: Image bytes
+          content:
+            image/png: {}
+            image/jpeg: {}
+            image/webp: {}
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  parameters:
+    ConversationId:
+      name: conversationId
+      in: path
+      required: true
+      schema: { type: string }
+    AssetId:
+      name: assetId
+      in: path
+      required: true
+      schema: { type: string }
+
+  responses:
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+
+    ModelAllowlist:
+      type: object
+      required: [defaultModel, models, allowCustomModelId]
+      properties:
+        defaultModel: { type: string }
+        allowCustomModelId: { type: boolean }
+        models:
+          type: array
+          items:
+            type: object
+            required: [id, label, enabled]
+            properties:
+              id: { type: string }
+              label: { type: string }
+              enabled: { type: boolean }
+
+    GenerationProfile:
+      type: object
+      required: [id, systemPrompt, defaultModel, updatedAt]
+      properties:
+        id: { type: string, enum: [default] }
+        systemPrompt: { type: string }
+        defaultModel: { type: string }
+        updatedAt: { type: string, format: date-time }
+
+    GenerationProfileUpdate:
+      type: object
+      properties:
+        systemPrompt: { type: string }
+        defaultModel: { type: string }
+
+    Conversation:
+      type: object
+      required: [id, title, model, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        title: { type: string, nullable: true }
+        model: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    Message:
+      type: object
+      required: [id, conversationId, role, content, createdAt, sequence]
+      properties:
+        id: { type: string }
+        conversationId: { type: string }
+        role: { type: string, enum: [user, assistant, system] }
+        content: { type: string }
+        model: { type: string, nullable: true }
+        assetIds:
+          type: array
+          items: { type: string }
+        createdAt: { type: string, format: date-time }
+        sequence: { type: integer }
+
+    ConversationDetail:
+      allOf:
+        - $ref: "#/components/schemas/Conversation"
+        - type: object
+          required: [messages]
+          properties:
+            messages:
+              type: array
+              items:
+                $ref: "#/components/schemas/Message"
+
+    GenerateRequest:
+      type: object
+      required: [conversationId, prompt]
+      properties:
+        conversationId: { type: string }
+        prompt: { type: string, minLength: 1 }
+        model: { type: string, description: 覆盖会话/默认模型 }
+
+    GenerateResponse:
+      type: object
+      required: [userMessage, assistantMessage, assets]
+      properties:
+        userMessage:
+          $ref: "#/components/schemas/Message"
+        assistantMessage:
+          $ref: "#/components/schemas/Message"
+        assets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Asset"
+
+    Asset:
+      type: object
+      required: [id, prompt, model, mimeType, favorite, createdAt, fileUrl]
+      properties:
+        id: { type: string }
+        conversationId: { type: string, nullable: true }
+        messageId: { type: string, nullable: true }
+        prompt: { type: string }
+        model: { type: string }
+        mimeType: { type: string }
+        favorite: { type: boolean }
+        width: { type: integer, nullable: true }
+        height: { type: integer, nullable: true }
+        createdAt: { type: string, format: date-time }
+        fileUrl: { type: string, description: 如 /api/assets/{id}/file }
+
+    AssetPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Asset"
+        nextCursor: { type: string, nullable: true }

@@ -1,0 +1,13 @@
+---
+description: Surreal 项目约定（Spec-Kit、密钥、MVP 边界）
+alwaysApply: true
+---
+
+# Surreal
+
+- 用中文回复与写项目文档；代码标识符英文。
+- 遵循 Spec-Kit：先规格/计划/任务，再实现。产物在 `.specify/` 与 `specs/`。
+- Claude skills 在 `.claude/skills/speckit-*`；不要绕过规格直接铺开大范围实现。
+- 密钥只读环境变量；不要新增会把密钥写入仓库的配置加载路径。
+- MVP 只做：文生图对话、本地落盘、收藏、系统提示词；不做 3D/骨骼/多用户/S3 上线。
+- 许可为 AGPL-3.0；勿引入不兼容许可的依赖而不说明。
