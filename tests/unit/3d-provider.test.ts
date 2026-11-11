@@ -64,12 +64,15 @@ describe("3D Provider & GLB Generator (Spec-007)", () => {
     expect(result.metadata?.provider).toBe("mock");
   });
 
-  it("get3DProvider returns Mock3DProvider by default and CustomHttp3DProvider when requested", () => {
+  it("get3DProvider returns Mock3DProvider by default, and can return CustomHttp3DProvider or GradioSpace3DProvider", () => {
     const defaultProvider = get3DProvider();
     expect(defaultProvider.name).toBe("mock");
 
     const httpProvider = get3DProvider("custom_http");
     expect(httpProvider.name).toBe("custom_http");
+
+    const hfProvider = get3DProvider("hf_space");
+    expect(hfProvider.name).toBe("hf_space");
   });
 });
 
