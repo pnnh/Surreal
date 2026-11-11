@@ -417,8 +417,9 @@ async function runModelGeneration(input: {
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "3D model generation failed";
+    const isQuota = message.toLowerCase().includes("quota");
     throw Object.assign(new Error(message), {
-      code: "THREE_D_GENERATION_FAILED",
+      code: isQuota ? "THREE_D_QUOTA_EXCEEDED" : "THREE_D_GENERATION_FAILED",
     });
   }
 

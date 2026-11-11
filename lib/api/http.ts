@@ -27,14 +27,16 @@ export function errorFromUnknown(err: unknown) {
       ? 404
       : code === "BUSY"
         ? 409
-        : code === "POE_NOT_CONFIGURED" ||
-            code === "BAD_REQUEST" ||
-            code === "NO_IMAGE" ||
-            code === "EMPTY_OPTIMIZATION"
-          ? 400
-          : code === "POE_UPSTREAM"
-            ? 502
-            : 500;
+        : code === "THREE_D_QUOTA_EXCEEDED"
+          ? 429
+          : code === "POE_NOT_CONFIGURED" ||
+              code === "BAD_REQUEST" ||
+              code === "NO_IMAGE" ||
+              code === "EMPTY_OPTIMIZATION"
+            ? 400
+            : code === "POE_UPSTREAM"
+              ? 502
+              : 500;
 
   if (code === "NO_IMAGE") {
     return NextResponse.json(
