@@ -6,6 +6,7 @@ import {
   type AgentMetaView,
 } from "@/components/chat/AgentReplyCard";
 import { FavoriteImage } from "@/components/chat/FavoriteImage";
+import { ModelViewer } from "@/components/chat/ModelViewer";
 import { SvgPreview } from "@/components/chat/SvgPreview";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 
@@ -45,6 +46,7 @@ function parseKind(value: unknown): ConversationKind {
     value === "general" ||
     value === "icon" ||
     value === "svg" ||
+    value === "model" ||
     value === "image"
   ) {
     return value;
@@ -239,7 +241,9 @@ export function ChatWorkspace() {
         ? t.chat.kindIcon
         : kind === "svg"
           ? t.chat.kindSvg
-          : t.chat.kindImage;
+          : kind === "model"
+            ? t.chat.kindModel
+            : t.chat.kindImage;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
@@ -362,10 +366,20 @@ export function ChatWorkspace() {
                               mimeType:
                                 activeKind === "svg"
                                   ? "image/svg+xml"
-                                  : undefined,
+                                  : activeKind === "model"
+                                    ? "model/gltf-binary"
+                                    : undefined,
                             }))
                         ).map((asset) =>
-                          asset.assetType === "svg" ||
+                          asset.assetType === "model" ||
+                          asset.mimeType === "model/gltf-binary" ? (
+                            <div key={asset.id} className="sm:col-span-2">
+                              <ModelViewer
+                                src={asset.fileUrl}
+                                alt={m.content?.slice(0, 40) || "3D Model"}
+                              />
+                            </div>
+                          ) : asset.assetType === "svg" ||
                           asset.mimeType === "image/svg+xml" ? (
                             <SvgPreview
                               key={asset.id}

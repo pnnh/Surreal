@@ -10,6 +10,7 @@ import { getEnv, requirePoeApiKey } from "@/lib/env";
 import { runIconSpecialistTurn } from "../subagents/icon-specialist";
 import { runImageSpecialistTurn } from "../subagents/image-specialist";
 import { runSvgSpecialistTurn } from "../subagents/svg-specialist";
+import { run3DSpecialistTurn } from "../subagents/3d-specialist";
 import type { AgentReply, CoordinatorMessageMeta, SubagentInput } from "../types";
 import { buildContextSummary } from "./context-builder";
 import {
@@ -37,6 +38,9 @@ async function dispatchToSpecialist(
       return runIconSpecialistTurn(input);
     case "svg":
       return runSvgSpecialistTurn(input);
+    case "model":
+    case "3d":
+      return run3DSpecialistTurn(input);
     case "image":
     default:
       return runImageSpecialistTurn(input);
@@ -104,6 +108,8 @@ export async function runCoordinatorTurn(input: {
       clarifyingQuestions: reply.clarifyingQuestions,
       suggestedPrompt: reply.suggestedPrompt,
       suggestedSizes: reply.suggestedSizes,
+      modelCategory: reply.modelCategory,
+      modelStyle: reply.modelStyle,
     });
 
     return {
@@ -117,6 +123,8 @@ export async function runCoordinatorTurn(input: {
         clarifyingQuestions: reply.clarifyingQuestions,
         suggestedPrompt: reply.suggestedPrompt,
         suggestedSizes: reply.suggestedSizes,
+        modelCategory: reply.modelCategory,
+        modelStyle: reply.modelStyle,
         readyToGenerate: reply.readyToGenerate,
         agentModel: subModel,
       },
@@ -204,6 +212,8 @@ export async function runCoordinatorTurn(input: {
     clarifyingQuestions: reply.clarifyingQuestions,
     suggestedPrompt: reply.suggestedPrompt,
     suggestedSizes: reply.suggestedSizes,
+    modelCategory: reply.modelCategory,
+    modelStyle: reply.modelStyle,
   });
 
   return {
@@ -217,6 +227,8 @@ export async function runCoordinatorTurn(input: {
       clarifyingQuestions: reply.clarifyingQuestions,
       suggestedPrompt: reply.suggestedPrompt,
       suggestedSizes: reply.suggestedSizes,
+      modelCategory: reply.modelCategory,
+      modelStyle: reply.modelStyle,
       readyToGenerate: reply.readyToGenerate,
       agentModel: subModel,
     },

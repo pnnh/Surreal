@@ -5,6 +5,10 @@ export const agentReplySchema = z.object({
   clarifyingQuestions: z.array(z.string()).max(4).default([]),
   suggestedPrompt: z.string().default(""),
   suggestedSizes: z.array(z.number().int().positive()).max(12).default([]),
+  modelCategory: z
+    .enum(["character", "prop", "hard_surface", "foliage"])
+    .optional(),
+  modelStyle: z.enum(["low-poly", "pbr", "stylized"]).optional(),
   readyToGenerate: z.boolean().default(false),
   assumptions: z.array(z.string()).default([]),
 });
@@ -20,12 +24,14 @@ export type CoordinatorMessageMeta = {
   kind: "coordinator_reply";
   intent: "chat" | "delegate" | "task_update";
   assistantMessage?: string;
-  subagentType?: "image" | "icon" | "svg";
+  subagentType?: "image" | "icon" | "svg" | "model" | "3d";
   taskId?: string;
   taskStatus?: string;
   clarifyingQuestions?: string[];
   suggestedPrompt?: string;
   suggestedSizes?: number[];
+  modelCategory?: string;
+  modelStyle?: string;
   readyToGenerate?: boolean;
   agentModel?: string;
 };
@@ -39,7 +45,9 @@ export type ImageResultMeta = {
   kind: "image_result";
   imagePrompt?: string;
   sizes?: number[];
-  assetType?: "image" | "icon" | "svg";
+  assetType?: "image" | "icon" | "svg" | "model";
+  modelCategory?: string;
+  modelStyle?: string;
 };
 
 export type MessageMeta =
@@ -51,7 +59,7 @@ export type MessageMeta =
 export type SubagentInput = {
   taskId?: string;
   conversationId: string;
-  subagentType: "image" | "icon" | "svg";
+  subagentType: "image" | "icon" | "svg" | "model" | "3d";
   userPrompt: string;
   contextSummary?: string;
   taskHistory?: Array<{ role: "user" | "assistant"; content: string }>;

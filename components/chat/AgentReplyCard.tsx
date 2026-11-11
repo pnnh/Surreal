@@ -5,12 +5,14 @@ import { useI18n } from "@/lib/i18n/LocaleProvider";
 export type AgentMetaView = {
   kind?: string;
   intent?: string;
-  subagentType?: "image" | "icon" | "svg";
+  subagentType?: "image" | "icon" | "svg" | "model" | "3d";
   taskId?: string;
   taskStatus?: string;
   clarifyingQuestions?: string[];
   suggestedPrompt?: string;
   suggestedSizes?: number[];
+  modelCategory?: string;
+  modelStyle?: string;
   readyToGenerate?: boolean;
   assumptions?: string[];
 };
@@ -40,9 +42,11 @@ export function AgentReplyCard({
       ? t.chat.specialistIcon
       : meta?.subagentType === "svg"
         ? t.chat.specialistSvg
-        : meta?.subagentType === "image"
-          ? t.chat.specialistImage
-          : null;
+        : meta?.subagentType === "model" || meta?.subagentType === "3d"
+          ? t.chat.specialistModel
+          : meta?.subagentType === "image"
+            ? t.chat.specialistImage
+            : null;
 
   return (
     <div className="space-y-3">
@@ -76,6 +80,21 @@ export function AgentReplyCard({
             {t.chat.suggestedPrompt}
           </p>
           <p className="whitespace-pre-wrap text-sm text-stone-800">{suggested}</p>
+        </div>
+      )}
+
+      {(meta?.modelCategory || meta?.modelStyle) && (
+        <div className="flex items-center gap-2 text-xs">
+          {meta.modelCategory && (
+            <span className="rounded-md border border-stone-200 bg-stone-100 px-2 py-0.5 text-stone-700">
+              {t.chat.modelCategory}: <strong className="font-medium text-stone-900">{meta.modelCategory}</strong>
+            </span>
+          )}
+          {meta.modelStyle && (
+            <span className="rounded-md border border-stone-200 bg-stone-100 px-2 py-0.5 text-stone-700">
+              {t.chat.modelStyle}: <strong className="font-medium text-stone-900">{meta.modelStyle}</strong>
+            </span>
+          )}
         </div>
       )}
 

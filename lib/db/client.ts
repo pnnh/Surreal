@@ -71,6 +71,8 @@ CREATE TABLE IF NOT EXISTS subagent_tasks (
   clarifying_questions TEXT NOT NULL DEFAULT '[]',
   suggested_prompt TEXT NOT NULL DEFAULT '',
   suggested_sizes TEXT NOT NULL DEFAULT '[]',
+  model_category TEXT,
+  model_style TEXT,
   asset_ids TEXT NOT NULL DEFAULT '[]',
   error_message TEXT,
   created_at TEXT NOT NULL,
@@ -91,6 +93,7 @@ function runMigrations(db: DatabaseSync): void {
   migrateConversationKind(db);
   migrateConversationActiveTask(db);
   migrateAssetType(db);
+  migrateTaskModelFields(db);
 }
 
 export function getDb(): DatabaseSync {
@@ -176,4 +179,16 @@ function migrateAssetType(db: DatabaseSync): void {
     `CREATE INDEX IF NOT EXISTS idx_assets_type_created
      ON assets(asset_type, created_at DESC)`,
   );
+}
+
+function migrateTaskModelFields(db: DatabaseSync): void {
+  const cols = db.prepare(`PRAGMA table_info(subagent_tasks)`).all() as Array<{
+    name: string;
+  }>;
+  if (!cols.some((c) => c.name === "model_category")) {
+    db.exec(`ALTER TABLE subagent_tasks ADD COLUMN model_category TEXT`);
+  }
+  if (!cols.some((c) => c.name === "model_style")) {
+    db.exec(`ALTER TABLE subagent_tasks ADD COLUMN model_style TEXT`);
+  }
 }

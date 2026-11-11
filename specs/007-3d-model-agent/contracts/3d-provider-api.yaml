@@ -1,0 +1,65 @@
+openapi: 3.0.3
+info:
+  title: Surreal 3D Provider API Contract
+  description: Contract for external/custom 3D Model Generation endpoints (CustomHttp3DProvider)
+  version: 1.0.0
+paths:
+  /generate:
+    post:
+      summary: Generate a 3D Static Mesh (.glb) from prompt or reference image
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prompt
+              properties:
+                prompt:
+                  type: string
+                  description: Detailed description of the 3D model
+                  example: "low-poly stylized wooden barrel with iron hoops"
+                category:
+                  type: string
+                  enum: [character, prop, hard_surface, foliage]
+                  default: prop
+                  description: Asset category for topological and bounding prior
+                style:
+                  type: string
+                  enum: [low-poly, pbr, stylized]
+                  default: stylized
+                  description: Shading and texturing style
+                seed:
+                  type: integer
+                  description: Optional random seed for reproducible geometry
+                image_url:
+                  type: string
+                  description: Optional 2D reference image URL for Image-to-3D pipeline
+      responses:
+        '200':
+          description: Binary .glb file or JSON wrapper with base64/download URL
+          content:
+            model/gltf-binary:
+              schema:
+                type: string
+                format: binary
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: object
+                properties:
+                  glb_base64:
+                    type: string
+                    description: Base64-encoded binary glTF buffer
+                  glb_url:
+                    type: string
+                    description: URL to download the generated .glb file
+        '400':
+          description: Invalid request parameters
+        '500':
+          description: 3D generation worker error
+

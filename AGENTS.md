@@ -27,7 +27,7 @@
 - MVP：Poe 文生图对话 + 本地资产存储/收藏 + 可调系统提示词
 - 非 MVP：3D/骨骼产品化、多用户、S3 上线（仅预留抽象）
 
-**当前活动功能**：见 `.specify/feature.json` → `specs/006-unified-coordinator-agent/`（统一主聊天 Agent 与子 Agent 任务协同架构）
+**当前活动功能**：见 `.specify/feature.json` → `specs/007-3d-model-agent/`（3D 静态模型生成专有 Agent 与可插拔 Provider 架构）
 
 **已完成基线**：
 - `specs/001-text-to-image-mvp/`（文生图对话 + 资产库）
@@ -35,3 +35,4 @@
 - `specs/003-mcp-image-service/`（MCP 直出图 + 聊天收藏 + MCP 会话页）
 - `specs/004-icon-agent/`（位图图标 Agent + 类型过滤 + 按会话目录 + MCP `generate_icon`）
 - `specs/005-svg-icon/`（SVG 矢量图标 Agent，CSS 可调大小/颜色）
+- `specs/006-unified-coordinator-agent/`（统一主聊天 Agent 与子 Agent 任务协同架构）

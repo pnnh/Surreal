@@ -5,6 +5,7 @@ import { runGeneration } from "@/lib/generation/run";
 import { getEnv } from "@/lib/env";
 import { normalizeIconSizes } from "@/lib/icons/sizes";
 import { resolveModelId } from "@/lib/models/allowlist";
+import type { ModelCategory, ModelStyle } from "@/lib/providers/3d";
 
 function mapAssets(
   assets: Awaited<ReturnType<typeof runGeneration>>["assets"],
@@ -119,6 +120,44 @@ export async function mcpGenerateIcon(input: {
     recordUserMessage: true,
     source: "skip",
     sizes,
+  });
+
+  return {
+    conversationId: conversation.id,
+    assistantMessageId: result.assistantMessage.id,
+    assets: mapAssets(result.assets),
+  };
+}
+
+export async function mcpGenerate3DModel(input: {
+  prompt: string;
+  category?: ModelCategory;
+  style?: ModelStyle;
+  seed?: number;
+  model?: string;
+}) {
+  const prompt = input.prompt.trim();
+  if (!prompt) {
+    throw Object.assign(new Error("prompt is required"), { code: "BAD_REQUEST" });
+  }
+
+  const model = input.model?.trim() || "3d-model";
+  const conversation = createConversation({
+    title: prompt.slice(0, 80),
+    model,
+    source: "mcp",
+    kind: "model",
+  });
+
+  const result = await runGeneration({
+    conversationId: conversation.id,
+    prompt,
+    model,
+    assetType: "model",
+    modelCategory: input.category,
+    modelStyle: input.style,
+    recordUserMessage: true,
+    source: "skip",
   });
 
   return {

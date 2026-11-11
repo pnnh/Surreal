@@ -9,6 +9,7 @@ import {
 } from "@/lib/db/conversations";
 import { insertMessage } from "@/lib/db/messages";
 import { updateSubagentTask } from "@/lib/db/tasks";
+import type { AssetType } from "@/lib/db/types";
 import { runGeneration } from "@/lib/generation/run";
 
 export const runtime = "nodejs";
@@ -92,7 +93,12 @@ export async function POST(request: Request) {
           recordUserMessage: false,
           source: "skip",
           sizes: task.subagentType === "icon" ? meta.suggestedSizes : undefined,
-          assetType: task.subagentType,
+          assetType:
+            task.subagentType === "3d" || task.subagentType === "model"
+              ? "model"
+              : (task.subagentType as AssetType),
+          modelCategory: task.modelCategory ?? meta.modelCategory,
+          modelStyle: task.modelStyle ?? meta.modelStyle,
         });
 
         if (generated.assets.length > 0) {

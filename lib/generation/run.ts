@@ -12,8 +12,14 @@ import {
 } from "@/lib/icons/sizes";
 import { resolveModelId } from "@/lib/models/allowlist";
 import { getImageProvider } from "@/lib/providers/poe";
+import {
+  get3DProvider,
+  type ModelCategory,
+  type ModelStyle,
+} from "@/lib/providers/3d";
 import { generateSvgMarkup } from "@/lib/svg/generate";
 import { persistSvgAsset } from "@/lib/svg/persist";
+import { persistModelAsset } from "./persist-model";
 import { buildGenerationMessages } from "./context-window";
 import {
   releaseGenerationLock,
@@ -37,20 +43,33 @@ export async function runGeneration(input: {
   source?: "confirm" | "skip";
   sizes?: number[];
   assetType?: AssetType;
+  modelCategory?: string;
+  modelStyle?: string;
 }): Promise<GenerateResult> {
   const prompt = input.prompt.trim();
   if (!prompt) {
     throw Object.assign(new Error("prompt is required"), { code: "BAD_REQUEST" });
   }
-  if (!getEnv().poeConfigured) {
-    throw Object.assign(new Error("POE_API_KEY is not configured"), {
-      code: "POE_NOT_CONFIGURED",
-    });
-  }
 
   const conversation = getConversation(input.conversationId);
   if (!conversation) {
     throw Object.assign(new Error("Conversation not found"), { code: "NOT_FOUND" });
+  }
+
+  const assetType =
+    input.assetType ||
+    (conversation.kind === "icon"
+      ? "icon"
+      : conversation.kind === "svg"
+        ? "svg"
+        : conversation.kind === "model"
+          ? "model"
+          : "image");
+
+  if (assetType !== "model" && !getEnv().poeConfigured) {
+    throw Object.assign(new Error("POE_API_KEY is not configured"), {
+      code: "POE_NOT_CONFIGURED",
+    });
   }
 
   if (!tryAcquireGenerationLock(conversation.id)) {
@@ -63,19 +82,15 @@ export async function runGeneration(input: {
   try {
     const profile = getProfile();
     const env = getEnv();
-    const assetType =
-      input.assetType ||
-      (conversation.kind === "icon"
-        ? "icon"
-        : conversation.kind === "svg"
-          ? "svg"
-          : "image");
     const isSvg = assetType === "svg";
+    const isModel = assetType === "model";
     const model = isSvg
       ? input.model?.trim() || env.agentModel
-      : resolveModelId(
-          input.model || conversation.model || profile.defaultModel,
-        );
+      : isModel
+        ? input.model?.trim() || "3d-model"
+        : resolveModelId(
+            input.model || conversation.model || profile.defaultModel,
+          );
 
     const recordUser = input.recordUserMessage !== false;
     let userMessage: Message | null = null;
@@ -94,12 +109,23 @@ export async function runGeneration(input: {
     if (!conversation.title) {
       touchConversation(conversation.id, {
         title: (input.userMessageContent || prompt).slice(0, 80),
-        model: isSvg ? conversation.model : model,
+        model: isSvg || isModel ? conversation.model : model,
       });
-    } else if (!isSvg) {
+    } else if (!isSvg && !isModel) {
       touchConversation(conversation.id, { model });
     } else {
       touchConversation(conversation.id, {});
+    }
+
+    if (assetType === "model") {
+      return await runModelGeneration({
+        conversationId: conversation.id,
+        prompt,
+        model,
+        category: input.modelCategory as ModelCategory | undefined,
+        style: input.modelStyle as ModelStyle | undefined,
+        userMessage,
+      });
     }
 
     if (assetType === "svg") {
@@ -369,5 +395,69 @@ async function runIconBatch(input: {
     userMessage: input.userMessage,
     assistantMessage,
     assets,
+  };
+}
+
+async function runModelGeneration(input: {
+  conversationId: string;
+  prompt: string;
+  model: string;
+  category?: ModelCategory;
+  style?: ModelStyle;
+  userMessage: Message | null;
+}): Promise<GenerateResult> {
+  const provider = get3DProvider();
+  let result;
+  try {
+    result = await provider.generate({
+      prompt: input.prompt,
+      category: input.category,
+      style: input.style,
+    });
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "3D model generation failed";
+    throw Object.assign(new Error(message), {
+      code: "THREE_D_GENERATION_FAILED",
+    });
+  }
+
+  const assistantMessage = insertMessage({
+    conversationId: input.conversationId,
+    role: "assistant",
+    content: `Generated 3D static model (.glb) for "${input.prompt}" using ${provider.name}.`,
+    model: `${provider.name}-3d`,
+    meta: {
+      kind: "image_result",
+      imagePrompt: input.prompt,
+      assetType: "model",
+      modelCategory: input.category,
+      modelStyle: input.style,
+    },
+  });
+
+  const asset = await persistModelAsset({
+    glbBuffer: result.glbBuffer,
+    conversationId: input.conversationId,
+    messageId: assistantMessage.id,
+    prompt: input.prompt,
+    model: `${provider.name}-3d`,
+  });
+
+  assistantMessage.assetIds = [asset.id];
+  assistantMessage.assets = [
+    {
+      id: asset.id,
+      favorite: asset.favorite,
+      fileUrl: asset.fileUrl,
+      assetType: asset.assetType,
+      mimeType: asset.mimeType,
+    },
+  ];
+
+  return {
+    userMessage: input.userMessage,
+    assistantMessage,
+    assets: [asset],
   };
 }

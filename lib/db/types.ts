@@ -7,9 +7,9 @@ export type GenerationProfile = {
 
 export type ConversationSource = "web" | "mcp";
 
-export type ConversationKind = "general" | "image" | "icon" | "svg";
+export type ConversationKind = "general" | "image" | "icon" | "svg" | "model";
 
-export type SubagentType = "image" | "icon" | "svg";
+export type SubagentType = "image" | "icon" | "svg" | "model" | "3d";
 
 export type SubagentTaskStatus =
   | "in_grill"
@@ -27,13 +27,15 @@ export type SubagentTask = {
   clarifyingQuestions: string[];
   suggestedPrompt: string;
   suggestedSizes?: number[];
+  modelCategory?: string;
+  modelStyle?: string;
   assetIds?: string[];
   errorMessage?: string | null;
   createdAt: string;
   updatedAt: string;
 };
 
-export type AssetType = "image" | "icon" | "svg";
+export type AssetType = "image" | "icon" | "svg" | "model";
 
 export type Conversation = {
   id: string;

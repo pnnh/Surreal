@@ -16,6 +16,8 @@ export async function POST(request: Request) {
       agentMessageId?: string;
       sizes?: number[];
       assetType?: string;
+      modelCategory?: string;
+      modelStyle?: string;
     };
 
     if (!body.conversationId || !body.prompt?.trim()) {
@@ -37,8 +39,12 @@ export async function POST(request: Request) {
     }
 
     const activeTask = getActiveSubagentTask(body.conversationId);
+    const subType = activeTask?.subagentType;
     const assetType =
-      (body.assetType as AssetType) || activeTask?.subagentType;
+      (body.assetType as AssetType) ||
+      (subType === "3d" || subType === "model"
+        ? "model"
+        : (subType as AssetType));
 
     const result = await runGeneration({
       conversationId: body.conversationId,
@@ -52,6 +58,8 @@ export async function POST(request: Request) {
       source,
       sizes: Array.isArray(body.sizes) ? body.sizes : undefined,
       assetType,
+      modelCategory: body.modelCategory || activeTask?.modelCategory,
+      modelStyle: body.modelStyle || activeTask?.modelStyle,
     });
 
     if (activeTask && result.assets.length > 0) {

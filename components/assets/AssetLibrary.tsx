@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { ModelViewer } from "@/components/chat/ModelViewer";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 
-type AssetType = "image" | "icon" | "svg";
+type AssetType = "image" | "icon" | "svg" | "model";
 
 type Asset = {
   id: string;
@@ -86,6 +87,7 @@ export function AssetLibrary() {
             <option value="image">{t.assets.typeImage}</option>
             <option value="icon">{t.assets.typeIcon}</option>
             <option value="svg">{t.assets.typeSvg}</option>
+            <option value="model">{t.assets.typeModel}</option>
           </select>
         </label>
         <button
@@ -101,55 +103,71 @@ export function AssetLibrary() {
         {items.map((asset) => (
           <article
             key={asset.id}
-            className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm"
+            className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm flex flex-col"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={asset.fileUrl}
-              alt={asset.prompt}
-              className={`w-full bg-[linear-gradient(45deg,#e7e5e4_25%,transparent_25%),linear-gradient(-45deg,#e7e5e4_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e7e5e4_75%),linear-gradient(-45deg,transparent_75%,#e7e5e4_75%)] bg-[length:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0] ${
-                asset.assetType === "icon" || asset.assetType === "svg"
-                  ? "aspect-square object-contain p-6"
-                  : "aspect-square object-cover"
-              }`}
-            />
-            <div className="space-y-2 p-3">
-              <div className="flex items-center gap-2">
-                <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-stone-600">
-                  {asset.assetType === "icon"
-                    ? t.assets.typeIcon
-                    : asset.assetType === "svg"
-                      ? t.assets.typeSvg
-                      : t.assets.typeImage}
-                </span>
-                {asset.width && asset.height ? (
-                  <span className="text-[10px] text-stone-400">
-                    {asset.width}×{asset.height}
-                  </span>
-                ) : null}
+            {asset.assetType === "model" || asset.mimeType === "model/gltf-binary" ? (
+              <div className="w-full">
+                <ModelViewer
+                  src={asset.fileUrl}
+                  alt={asset.prompt}
+                  className="rounded-none border-0 border-b border-zinc-800"
+                />
               </div>
-              <p className="line-clamp-2 text-sm text-stone-800">{asset.prompt}</p>
-              <p className="text-xs text-stone-500">
-                {asset.model} ·{" "}
-                {new Date(asset.createdAt).toLocaleString(
-                  locale === "zh" ? "zh-CN" : "en",
-                )}
-              </p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => void toggleFavorite(asset)}
-                  className="rounded-md bg-stone-100 px-2 py-1 text-xs text-stone-800 hover:bg-stone-200"
-                >
-                  {asset.favorite ? t.assets.unfavorite : t.assets.favorite}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void onDelete(asset)}
-                  className="rounded-md bg-rose-50 px-2 py-1 text-xs text-rose-700 hover:bg-rose-100"
-                >
-                  {t.assets.delete}
-                </button>
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={asset.fileUrl}
+                alt={asset.prompt}
+                className={`w-full bg-[linear-gradient(45deg,#e7e5e4_25%,transparent_25%),linear-gradient(-45deg,#e7e5e4_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e7e5e4_75%),linear-gradient(-45deg,transparent_75%,#e7e5e4_75%)] bg-[length:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0] ${
+                  asset.assetType === "icon" || asset.assetType === "svg"
+                    ? "aspect-square object-contain p-6"
+                    : "aspect-square object-cover"
+                }`}
+              />
+            )}
+            <div className="space-y-2 p-3 flex-1 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-stone-600">
+                    {asset.assetType === "icon"
+                      ? t.assets.typeIcon
+                      : asset.assetType === "svg"
+                        ? t.assets.typeSvg
+                        : asset.assetType === "model"
+                          ? t.assets.typeModel
+                          : t.assets.typeImage}
+                  </span>
+                  {asset.width && asset.height ? (
+                    <span className="text-[10px] text-stone-400">
+                      {asset.width}×{asset.height}
+                    </span>
+                  ) : null}
+                </div>
+                <p className="line-clamp-2 text-sm text-stone-800">{asset.prompt}</p>
+              </div>
+              <div>
+                <p className="text-xs text-stone-500 mb-2">
+                  {asset.model} ·{" "}
+                  {new Date(asset.createdAt).toLocaleString(
+                    locale === "zh" ? "zh-CN" : "en",
+                  )}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void toggleFavorite(asset)}
+                    className="rounded-md bg-stone-100 px-2 py-1 text-xs text-stone-800 hover:bg-stone-200"
+                  >
+                    {asset.favorite ? t.assets.unfavorite : t.assets.favorite}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void onDelete(asset)}
+                    className="rounded-md bg-rose-50 px-2 py-1 text-xs text-rose-700 hover:bg-rose-100"
+                  >
+                    {t.assets.delete}
+                  </button>
+                </div>
               </div>
             </div>
           </article>

@@ -10,6 +10,7 @@ import {
   listTasksForConversation,
   updateSubagentTask,
 } from "@/lib/db/tasks";
+import { runGeneration } from "@/lib/generation/run";
 
 describe("Coordinator Task Lifecycle & DB Integration", () => {
   it("creates a general conversation by default", () => {
@@ -106,6 +107,47 @@ describe("Coordinator Task Lifecycle & DB Integration", () => {
     expect(getConversation(conv.id)?.activeTaskId).toBeNull();
     const loaded = getSubagentTask(task.id);
     expect(loaded?.status).toBe("cancelled");
+  });
+
+  it("supports 3D model task lifecycle with category and style presets", async () => {
+    const conv = createConversation();
+    const task = createSubagentTask({
+      conversationId: conv.id,
+      subagentType: "model",
+      status: "in_grill",
+      clarifyingQuestions: ["Low-poly or PBR?"],
+      suggestedPrompt: "a stylized wooden chest",
+      modelCategory: "prop",
+      modelStyle: "low-poly",
+    });
+
+    expect(task.subagentType).toBe("model");
+    expect(task.modelCategory).toBe("prop");
+    expect(task.modelStyle).toBe("low-poly");
+
+    // Execute runGeneration with assetType: "model"
+    const genResult = await runGeneration({
+      conversationId: conv.id,
+      prompt: "a stylized wooden chest",
+      assetType: "model",
+      modelCategory: task.modelCategory,
+      modelStyle: task.modelStyle,
+    });
+
+    expect(genResult.assets).toHaveLength(1);
+    const asset = genResult.assets[0];
+    expect(asset.assetType).toBe("model");
+    expect(asset.mimeType).toBe("model/gltf-binary");
+    expect(asset.storageKey).toContain("/models/");
+    expect(asset.storageKey.endsWith(".glb")).toBe(true);
+
+    // Complete task
+    updateSubagentTask(task.id, {
+      status: "completed",
+      assetIds: [asset.id],
+    });
+
+    expect(getConversation(conv.id)?.activeTaskId).toBeNull();
   });
 });
 

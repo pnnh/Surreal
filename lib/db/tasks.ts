@@ -11,6 +11,8 @@ type TaskRow = {
   clarifying_questions: string;
   suggested_prompt: string;
   suggested_sizes: string;
+  model_category?: string | null;
+  model_style?: string | null;
   asset_ids: string;
   error_message: string | null;
   created_at: string;
@@ -34,6 +36,8 @@ function mapTaskRow(row: TaskRow): SubagentTask {
     clarifyingQuestions: safeJsonParse<string[]>(row.clarifying_questions, []),
     suggestedPrompt: row.suggested_prompt || "",
     suggestedSizes: safeJsonParse<number[]>(row.suggested_sizes, []),
+    modelCategory: row.model_category ?? undefined,
+    modelStyle: row.model_style ?? undefined,
     assetIds: safeJsonParse<string[]>(row.asset_ids, []),
     errorMessage: row.error_message ?? null,
     createdAt: row.created_at,
@@ -41,7 +45,7 @@ function mapTaskRow(row: TaskRow): SubagentTask {
   };
 }
 
-const SELECT_COLS = `id, conversation_id, subagent_type, status, clarifying_questions, suggested_prompt, suggested_sizes, asset_ids, error_message, created_at, updated_at`;
+const SELECT_COLS = `id, conversation_id, subagent_type, status, clarifying_questions, suggested_prompt, suggested_sizes, model_category, model_style, asset_ids, error_message, created_at, updated_at`;
 
 export function createSubagentTask(input: {
   conversationId: string;
@@ -50,6 +54,8 @@ export function createSubagentTask(input: {
   clarifyingQuestions?: string[];
   suggestedPrompt?: string;
   suggestedSizes?: number[];
+  modelCategory?: string;
+  modelStyle?: string;
   assetIds?: string[];
 }): SubagentTask {
   const id = ulid();
@@ -64,8 +70,8 @@ export function createSubagentTask(input: {
     .prepare(
       `INSERT INTO subagent_tasks (
         id, conversation_id, subagent_type, status, clarifying_questions,
-        suggested_prompt, suggested_sizes, asset_ids, error_message, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
+        suggested_prompt, suggested_sizes, model_category, model_style, asset_ids, error_message, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
     )
     .run(
       id,
@@ -75,6 +81,8 @@ export function createSubagentTask(input: {
       questionsJson,
       prompt,
       sizesJson,
+      input.modelCategory ?? null,
+      input.modelStyle ?? null,
       assetsJson,
       now,
       now,
@@ -134,6 +142,8 @@ export function updateSubagentTask(
     clarifyingQuestions?: string[];
     suggestedPrompt?: string;
     suggestedSizes?: number[];
+    modelCategory?: string;
+    modelStyle?: string;
     assetIds?: string[];
     errorMessage?: string | null;
   },
@@ -155,6 +165,14 @@ export function updateSubagentTask(
     patch.suggestedSizes !== undefined
       ? JSON.stringify(patch.suggestedSizes)
       : JSON.stringify(current.suggestedSizes ?? []);
+  const nextCategory =
+    patch.modelCategory !== undefined
+      ? patch.modelCategory
+      : current.modelCategory ?? null;
+  const nextStyle =
+    patch.modelStyle !== undefined
+      ? patch.modelStyle
+      : current.modelStyle ?? null;
   const nextAssets =
     patch.assetIds !== undefined
       ? JSON.stringify(patch.assetIds)
@@ -166,7 +184,8 @@ export function updateSubagentTask(
     .prepare(
       `UPDATE subagent_tasks
        SET status = ?, clarifying_questions = ?, suggested_prompt = ?,
-           suggested_sizes = ?, asset_ids = ?, error_message = ?, updated_at = ?
+           suggested_sizes = ?, model_category = ?, model_style = ?,
+           asset_ids = ?, error_message = ?, updated_at = ?
        WHERE id = ?`,
     )
     .run(
@@ -174,6 +193,8 @@ export function updateSubagentTask(
       nextQuestions,
       nextPrompt,
       nextSizes,
+      nextCategory,
+      nextStyle,
       nextAssets,
       nextError,
       now,

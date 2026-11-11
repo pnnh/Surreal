@@ -14,6 +14,7 @@
     "mcp:verify": "tsx --tsconfig tsconfig.json scripts/verify-mcp-generate.ts",
     "mcp:verify-icon": "tsx --tsconfig tsconfig.json scripts/verify-mcp-icon.ts",
     "mcp:verify-svg": "tsx --tsconfig tsconfig.json scripts/verify-mcp-svg.ts",
+    "mcp:verify-3d": "tsx --tsconfig tsconfig.json scripts/verify-mcp-3d.ts",
     "mcp:stdio": "tsx --tsconfig tsconfig.json scripts/verify-mcp-stdio.ts"
   },
   "dependencies": {

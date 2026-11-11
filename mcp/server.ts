@@ -11,6 +11,7 @@ import { getEnv } from "../lib/env";
 import { loadDotEnv } from "../lib/load-dotenv";
 import { getModelAllowlist } from "../lib/models/allowlist";
 import {
+  mcpGenerate3DModel,
   mcpGenerateIcon,
   mcpGenerateImage,
   mcpGenerateSvgIcon,
@@ -175,6 +176,52 @@ server.registerTool(
       };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Generation failed";
+      return {
+        isError: true,
+        content: [{ type: "text", text: message }],
+      };
+    }
+  },
+);
+
+server.registerTool(
+  "generate_3d_model",
+  {
+    title: "Generate 3D model",
+    description:
+      "Generate a game-ready 3D static mesh (.glb) from a prompt (no clarification). Saves under conversation models/ directory as a binary glTF file.",
+    inputSchema: {
+      prompt: z.string().min(1).describe("3D model description/prompt"),
+      category: z
+        .enum(["character", "prop", "hard_surface", "foliage"])
+        .optional()
+        .describe("Optional 3D asset category (default: prop)"),
+      style: z
+        .enum(["low-poly", "pbr", "stylized"])
+        .optional()
+        .describe("Optional 3D shading style (default: low-poly)"),
+      seed: z.number().int().optional().describe("Optional random seed"),
+    },
+  },
+  async ({ prompt, category, style, seed }) => {
+    try {
+      const result = await mcpGenerate3DModel({
+        prompt,
+        category,
+        style,
+        seed,
+      });
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "3D generation failed";
       return {
         isError: true,
         content: [{ type: "text", text: message }],

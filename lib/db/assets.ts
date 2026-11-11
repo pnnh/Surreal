@@ -22,6 +22,7 @@ type Row = {
 function mapAssetType(value: string | undefined): AssetType {
   if (value === "icon") return "icon";
   if (value === "svg") return "svg";
+  if (value === "model") return "model";
   return "image";
 }
 
@@ -61,7 +62,9 @@ export function insertAsset(input: {
   const id = input.id ?? ulid();
   const createdAt = new Date().toISOString();
   const assetType: AssetType =
-    input.assetType === "icon" || input.assetType === "svg"
+    input.assetType === "icon" ||
+    input.assetType === "svg" ||
+    input.assetType === "model"
       ? input.assetType
       : "image";
   getDb()
