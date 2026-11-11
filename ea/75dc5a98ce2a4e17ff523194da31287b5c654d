@@ -1,0 +1,26 @@
+tests/setup.ts
+  s_9aefe4a2760245::t_1540ad8d3f5ec3 1-24
+vitest.config.ts
+  s_9aefe4a2760245::t_12611c19fd6b2a 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ea75dc5a98ce2a4e17ff523194da31287b5c654d",
+  "prompts": {},
+  "humans": {
+    "h_6465a203f88bd5": {
+      "author": "larry <xspanni@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_9aefe4a2760245": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48d90204-caa4-4c1c-8d56-1c633be7693d",
+        "model": "unknown"
+      },
+      "human_author": "larry <xspanni@gmail.com>"
+    }
+  }
+}
