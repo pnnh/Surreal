@@ -1,0 +1,94 @@
+.specify/feature.json
+  s_9aefe4a2760245::t_3d9aff076fdb30 1
+AGENTS.md
+  s_9aefe4a2760245::t_8822555de5a00d 30,38
+README.md
+  s_9aefe4a2760245::t_74249c978c6fa0 3,9,18-29,32,42,47
+app/api/chat/route.ts
+  s_9aefe4a2760245::t_af79a7620528c7 12,96-101
+app/api/generate/route.ts
+  s_9aefe4a2760245::t_7e3cdcb9757838 19-20,42,44-47,61-62
+components/assets/AssetLibrary.tsx
+  s_9aefe4a2760245::t_5fa6f9ab57d61f 4,7,90,106,108-138,140-146,148-170
+components/chat/AgentReplyCard.tsx
+  s_9aefe4a2760245::t_9d920330d9e201 8,14-15,45-49,86-100
+components/chat/ChatWorkspace.tsx
+  s_9aefe4a2760245::t_4edc581e8a142c 9,49,244-246,369-371,374-382
+components/chat/ModelViewer.tsx
+  s_9aefe4a2760245::t_34cc45e5c29eb3 1-186
+lib/agents/3d-grill-system-prompt.ts
+  s_9aefe4a2760245::t_38f6663de56c7f 1-47
+lib/agents/coordinator/intent-prompt.ts
+  s_9aefe4a2760245::t_8fa8d798b20ad1 8,31-32,37,51
+lib/agents/coordinator/run-coordinator-turn.ts
+  s_9aefe4a2760245::t_b45755bac0b249 13,41-43,111-112,126-127,215-216,230-231
+lib/agents/subagents/3d-specialist.ts
+  s_9aefe4a2760245::t_e70013d0d33872 1-24
+lib/agents/types.ts
+  s_9aefe4a2760245::t_fee252925bbd15 8-11,27,33-34,48-50,62
+lib/db/assets.ts
+  s_9aefe4a2760245::t_7723410cb5d4d1 25,65-67
+lib/db/tasks.ts
+  s_9aefe4a2760245::t_f1ebad0b329cfc 14-15,39-40,48,57-58,73-74,84-85,145-146,168-175,187-188,196-197
+lib/db/types.ts
+  s_9aefe4a2760245::t_948c51d4ab6a2f 10,12,30-31,38
+lib/generation/persist-model.ts
+  s_9aefe4a2760245::t_74f78005840347 1-43
+lib/generation/run.ts
+  s_9aefe4a2760245::t_fa190287f63e18 15-19,22,46-47,59-74,86,89-93,112,114,120-130,400-463
+lib/i18n/messages.ts
+  s_9aefe4a2760245::t_359dec626d12fb 49,54,66-71,82,158,163,169,171,177-182,186,193,268,273,279,281,287-292,296,303
+lib/providers/3d/http-provider.ts
+  s_9aefe4a2760245::t_612f6a9224a2c6 1-133
+lib/providers/3d/index.ts
+  s_9aefe4a2760245::t_b449c18cad0cad 1-24
+lib/providers/3d/mock-provider.ts
+  s_9aefe4a2760245::t_3e3c698d335323 1-190
+lib/providers/3d/types.ts
+  s_9aefe4a2760245::t_8fb2e59402d74e 1-32
+scripts/verify-mcp-3d.ts
+  s_9aefe4a2760245::t_7430d2bee2b907 1-63
+specs/007-3d-model-agent/contracts/3d-provider-api.yaml
+  s_9aefe4a2760245::t_856b0b1b6ed618 1-65
+specs/007-3d-model-agent/contracts/subagent-3d-protocol.md
+  s_9aefe4a2760245::t_2c782b8adea354 1-59
+specs/007-3d-model-agent/data-model.md
+  s_9aefe4a2760245::t_31c317b73d6984 1-92
+specs/007-3d-model-agent/plan.md
+  s_9aefe4a2760245::t_6ec28827964548 1-101
+specs/007-3d-model-agent/quickstart.md
+  s_9aefe4a2760245::t_22613aca238188 1-64
+specs/007-3d-model-agent/research.md
+  s_9aefe4a2760245::t_6a2c873656cfb7 1-118
+specs/007-3d-model-agent/spec.md
+  s_9aefe4a2760245::t_1bee84868b0c20 1-175
+specs/007-3d-model-agent/tasks.md
+  s_9aefe4a2760245::t_a212cc4c51f0f7 1-117
+tests/unit/3d-provider.test.ts
+  s_9aefe4a2760245::t_05b21caa065f50 1-75
+tests/unit/3d-specialist.test.ts
+  s_9aefe4a2760245::t_da537e6793839e 1-69
+types/model-viewer.d.ts
+  s_9aefe4a2760245::t_e9f9bd32fe5991 1-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "25e7b931ef07b2e7c5e179312263d9faa71f7ac9",
+  "prompts": {},
+  "humans": {
+    "h_6465a203f88bd5": {
+      "author": "larry <xspanni@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_9aefe4a2760245": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48d90204-caa4-4c1c-8d56-1c633be7693d",
+        "model": "unknown"
+      },
+      "human_author": "larry <xspanni@gmail.com>"
+    }
+  }
+}
