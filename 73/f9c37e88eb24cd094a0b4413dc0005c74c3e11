@@ -1,0 +1,31 @@
+lib/storage/types.ts
+  s_e196f514e0974e::t_a6b9db8ad875f9 1-6
+lib/storage/local-fs.ts
+  s_e196f514e0974e::t_c3485ef0fcbfae 28-29
+  s_e196f514e0974e::t_a8942158db7f68 1-27,30-63
+lib/storage/asset-path.ts
+  s_e196f514e0974e::t_6f246d1a3db32a 3-9,16
+  s_e196f514e0974e::t_a07f9f1e4340db 1-2,10-15,17-19
+  s_e196f514e0974e::t_c7ec3ab45f8903 20-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "73f9c37e88eb24cd094a0b4413dc0005c74c3e11",
+  "prompts": {},
+  "humans": {
+    "h_6465a203f88bd5": {
+      "author": "larry <xspanni@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_e196f514e0974e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "39694778-279d-426d-bc5e-67d1f3fec2d5",
+        "model": "default"
+      },
+      "human_author": "larry <xspanni@gmail.com>"
+    }
+  }
+}
