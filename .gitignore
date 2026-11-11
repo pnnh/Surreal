@@ -8,9 +8,9 @@ credentials.json
 secrets/
 
 # Local runtime data (assets, sqlite, uploads)
-data/
-storage/
-uploads/
+/data/
+/storage/
+/uploads/
 *.db
 *.sqlite
 *.sqlite3

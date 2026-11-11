@@ -1,6 +1,7 @@
 import path from "node:path";
 import { ulid } from "ulid";
 import { insertAsset } from "@/lib/db/assets";
+import { getConversation } from "@/lib/db/conversations";
 import type { Asset, AssetType } from "@/lib/db/types";
 import { getEnv } from "@/lib/env";
 import { buildAssetStorageKey } from "@/lib/storage/asset-path";
@@ -59,6 +60,8 @@ export async function persistGeneratedImages(input: {
   const assetType = input.assetType === "icon" ? "icon" : "image";
   const saved: Asset[] = [];
 
+  const convTitle = getConversation(input.conversationId)?.title;
+
   for (const url of input.urls) {
     const { mimeType, buffer } = await downloadImageBytes(url);
     const assetId = ulid();
@@ -68,6 +71,8 @@ export async function persistGeneratedImages(input: {
       assetType,
       assetId,
       ext,
+      conversationTitle: convTitle,
+      description: input.prompt,
     });
     try {
       await storage.putObject(storageKey, buffer, mimeType);
