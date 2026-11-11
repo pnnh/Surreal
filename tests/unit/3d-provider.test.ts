@@ -73,6 +73,9 @@ describe("3D Provider & GLB Generator (Spec-007)", () => {
 
     const hfProvider = get3DProvider("hf_space");
     expect(hfProvider.name).toBe("hf_space");
+
+    const falProvider = get3DProvider("fal");
+    expect(falProvider.name).toBe("fal_ai");
   });
 });
 
