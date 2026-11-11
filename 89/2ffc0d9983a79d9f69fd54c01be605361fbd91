@@ -1,0 +1,16 @@
+lib/api/http.ts
+  h_6465a203f88bd5 30-39
+lib/generation/run.ts
+  h_6465a203f88bd5 420,422
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "892ffc0d9983a79d9f69fd54c01be605361fbd91",
+  "prompts": {},
+  "humans": {
+    "h_6465a203f88bd5": {
+      "author": "larry <xspanni@gmail.com>"
+    }
+  }
+}
