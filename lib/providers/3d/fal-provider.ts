@@ -1,6 +1,7 @@
 import { getImageProvider } from "@/lib/providers/poe";
 import { getEnv } from "@/lib/env";
 import { isValidGlbBuffer } from "./http-provider";
+import { getLiveEnvValue } from "./index";
 import type {
   ThreeDGenerateOptions,
   ThreeDGenerateResult,
@@ -18,7 +19,11 @@ export class FalAi3DProvider implements ThreeDProvider {
     endpoint?: string;
     timeoutMs?: number;
   }) {
-    this.falKey = config?.falKey || process.env.FAL_KEY;
+    this.falKey =
+      config?.falKey ||
+      process.env.FAL_KEY ||
+      getLiveEnvValue("FAL_KEY") ||
+      undefined;
     this.endpoint =
       config?.endpoint ||
       process.env.FAL_3D_ENDPOINT ||

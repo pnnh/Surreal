@@ -407,6 +407,7 @@ async function runModelGeneration(input: {
   userMessage: Message | null;
 }): Promise<GenerateResult> {
   const provider = get3DProvider();
+  console.log(`[3D Generation] Active provider: ${provider.name}`);
   let result;
   try {
     result = await provider.generate({
