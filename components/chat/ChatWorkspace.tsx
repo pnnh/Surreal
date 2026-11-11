@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   AgentReplyCard,
   type AgentMetaView,
@@ -11,12 +11,6 @@ import { SvgPreview } from "@/components/chat/SvgPreview";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 import type { ConversationKind } from "@/lib/db/types";
-
-type ModelAllowlist = {
-  defaultModel: string;
-  models: Array<{ id: string; label: string; enabled: boolean }>;
-  allowCustomModelId: boolean;
-};
 
 type Conversation = {
   id: string;
@@ -56,24 +50,17 @@ function parseKind(value: unknown): ConversationKind {
 
 export function ChatWorkspace() {
   const { t, locale } = useI18n();
-  const [models, setModels] = useState<ModelAllowlist | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeKind, setActiveKind] = useState<ConversationKind>("general");
   const [draftKind, setDraftKind] = useState<ConversationKind>("general");
   const [messages, setMessages] = useState<Message[]>([]);
   const [model, setModel] = useState("GPT-Image-1.5");
-  const [customModel, setCustomModel] = useState("");
   const [prompt, setPrompt] = useState("");
   const [busy, setBusy] = useState(false);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [poeConfigured, setPoeConfigured] = useState<boolean | null>(null);
-
-  const selectedModel = useMemo(
-    () => (customModel.trim() ? customModel.trim() : model),
-    [customModel, model],
-  );
 
   const refreshConversations = useCallback(async () => {
     const res = await fetch("/api/conversations");
@@ -106,7 +93,6 @@ export function ChatWorkspace() {
         fetch("/api/models").then((r) => r.json()),
       ]);
       setPoeConfigured(Boolean(health.poeConfigured));
-      setModels(modelRes);
       setModel(modelRes.defaultModel || "GPT-Image-1.5");
       await refreshConversations();
     })();
@@ -118,7 +104,7 @@ export function ChatWorkspace() {
     const res = await fetch("/api/conversations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: selectedModel, kind }),
+      body: JSON.stringify({ model, kind }),
     });
     return (await res.json()) as Conversation;
   }
@@ -132,14 +118,28 @@ export function ChatWorkspace() {
     return data.id as string;
   }
 
-  async function onNewChat(kind: ConversationKind = draftKind) {
+  function onNewChat(kind: ConversationKind = draftKind) {
     setError(null);
-    const data = await createConversation(kind);
-    setActiveId(data.id);
+    setActiveId(null);
     setActiveKind(kind);
     setDraftKind(kind);
     setMessages([]);
-    await refreshConversations();
+  }
+
+  async function deleteChat(id: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!window.confirm(t.chat.deleteSessionConfirm)) return;
+    try {
+      const res = await fetch(`/api/conversations/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete conversation");
+      if (activeId === id) {
+        setActiveId(null);
+        setMessages([]);
+      }
+      await refreshConversations();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete");
+    }
   }
 
   function appendGenerated(data: {
@@ -171,7 +171,7 @@ export function ChatWorkspace() {
           prompt: prompt.trim(),
           skipClarification: Boolean(opts?.skipClarification),
           locale,
-          model: selectedModel,
+          model,
         }),
       });
       const data = await res.json();
@@ -211,7 +211,7 @@ export function ChatWorkspace() {
         body: JSON.stringify({
           conversationId: activeId,
           prompt: imagePrompt,
-          model: selectedModel,
+          model,
           source: "confirm",
           agentMessageId,
           sizes: sizes && sizes.length > 0 ? sizes : undefined,
@@ -264,20 +264,45 @@ export function ChatWorkspace() {
         </div>
         <ul className="space-y-1">
           {conversations.map((c) => (
-            <li key={c.id}>
+            <li
+              key={c.id}
+              className={`group flex items-center justify-between rounded-md transition-colors ${
+                activeId === c.id
+                  ? "bg-amber-50 text-amber-900 ring-1 ring-amber-200"
+                  : "text-stone-600 hover:bg-stone-100"
+              }`}
+            >
               <button
                 type="button"
                 onClick={() => void loadConversation(c.id)}
-                className={`w-full truncate rounded-md px-2 py-1.5 text-left text-sm ${
-                  activeId === c.id
-                    ? "bg-amber-50 text-amber-900 ring-1 ring-amber-200"
-                    : "text-stone-600 hover:bg-stone-100"
-                }`}
+                className="flex-1 truncate px-2 py-1.5 text-left text-sm"
               >
                 <span className="mr-1 text-[10px] uppercase tracking-wide text-stone-400">
                   {kindLabel(c.kind)}
                 </span>
                 {c.title || t.chat.untitled}
+              </button>
+              <button
+                type="button"
+                onClick={(e) => void deleteChat(c.id, e)}
+                title={t.chat.deleteSession}
+                className="mr-1 hidden rounded p-1 text-stone-400 hover:bg-stone-200 hover:text-rose-600 group-hover:block"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                </svg>
               </button>
             </li>
           ))}
@@ -290,32 +315,16 @@ export function ChatWorkspace() {
       </aside>
 
       <section className="flex min-h-[70vh] flex-col rounded-xl border border-stone-200 bg-white shadow-sm">
-        <div className="flex flex-wrap items-center gap-2 border-b border-stone-200 p-3">
-          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600">
-            {kindLabel(activeId ? activeKind : draftKind)}
-          </span>
-          <label className="text-xs text-stone-500">{t.chat.model}</label>
-          <select
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-            className="rounded-md border border-stone-300 bg-white px-2 py-1 text-sm text-stone-800"
-          >
-            {(models?.models || [])
-              .filter((m) => m.enabled)
-              .map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
-                </option>
-              ))}
-          </select>
-          {models?.allowCustomModelId && (
-            <input
-              value={customModel}
-              onChange={(e) => setCustomModel(e.target.value)}
-              placeholder={t.chat.customModel}
-              className="min-w-[180px] flex-1 rounded-md border border-stone-300 bg-white px-2 py-1 text-sm"
-            />
-          )}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200 p-3">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-900">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              {t.chat.coordinatorBadge}
+            </span>
+            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600">
+              {kindLabel(activeId ? activeKind : draftKind)}
+            </span>
+          </div>
           {poeConfigured === false && (
             <span className="text-xs text-rose-600">{t.chat.missingKey}</span>
           )}

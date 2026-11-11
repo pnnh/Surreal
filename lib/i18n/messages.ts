@@ -20,6 +20,9 @@ export type Messages = {
     subtitle: string;
     sessions: string;
     newSession: string;
+    deleteSession: string;
+    deleteSessionConfirm: string;
+    coordinatorBadge: string;
     untitled: string;
     emptySessions: string;
     model: string;
@@ -120,11 +123,14 @@ export const messages: Record<Locale, Messages> = {
       readOnly: "Read-only",
     },
     chat: {
-      title: "Image, icon & SVG agent",
+      title: "Game Art Coordinator Agent",
       subtitle:
-        "Clarify with a grill-style agent, then generate game art, bitmap icons, or CSS-colorable SVG icons.",
+        "Unified Coordinator Agent delegates to specialized subagents for 2D game art, bitmap icons, SVG vector graphics, and 3D static models.",
       sessions: "Sessions",
       newSession: "New",
+      deleteSession: "Delete session",
+      deleteSessionConfirm: "Are you sure you want to delete this session?",
+      coordinatorBadge: "Coordinator Agent",
       untitled: "Untitled session",
       emptySessions: "No sessions yet",
       model: "Image model",
@@ -231,11 +237,14 @@ export const messages: Record<Locale, Messages> = {
       readOnly: "只读",
     },
     chat: {
-      title: "生图 / 图标 / SVG Agent",
+      title: "游戏美术资产协同 Agent",
       subtitle:
-        "反向拷问澄清后，生成游戏美术、位图图标，或可用 CSS 调色缩放的 SVG。",
+        "由主 Agent 自动协同 2D 原画、位图图标、矢量 SVG 与 3D 静态模型专有子 Agent，反向澄清后精准出图出模。",
       sessions: "会话",
       newSession: "新建",
+      deleteSession: "删除会话",
+      deleteSessionConfirm: "确定删除此会话及其所有关联资产吗？",
+      coordinatorBadge: "美术协同 Agent",
       untitled: "未命名会话",
       emptySessions: "暂无会话",
       model: "生图模型",
