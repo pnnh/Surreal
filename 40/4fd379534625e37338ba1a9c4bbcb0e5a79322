@@ -1,0 +1,66 @@
+.agents/skills/speckit-analyze
+  s_9aefe4a2760245::t_1ef1c14df42f6b 1
+.agents/skills/speckit-checklist
+  s_9aefe4a2760245::t_70b4dc421e276d 1
+.agents/skills/speckit-clarify
+  s_9aefe4a2760245::t_105b522fb6ace1 1
+.agents/skills/speckit-constitution
+  s_9aefe4a2760245::t_dddf0152e5ffeb 1
+.agents/skills/speckit-converge
+  s_9aefe4a2760245::t_ee38199a7fe783 1
+.agents/skills/speckit-implement
+  s_9aefe4a2760245::t_5ddb2565453753 1
+.agents/skills/speckit-plan
+  s_9aefe4a2760245::t_3daff5f33e461d 1
+.agents/skills/speckit-specify
+  s_9aefe4a2760245::t_98d3701a43ce6c 1
+.agents/skills/speckit-tasks
+  s_9aefe4a2760245::t_288682230d41a1 1
+.agents/skills/speckit-taskstoissues
+  s_9aefe4a2760245::t_f000c7ba003921 1
+.specify/integration.json
+  s_9aefe4a2760245::t_2518d37a5edecf 5-6,12-15
+AGENTS.md
+  s_9aefe4a2760245::t_50bff8e8c0d46a 21-22,30,37
+app/api/generate/route.ts
+  s_9aefe4a2760245::t_d6fdacef882fc3 2-3,18,39-42,54,57-63
+components/chat/AgentReplyCard.tsx
+  s_9aefe4a2760245::t_4ffe87eae84399 7-10,38-46,49-57
+lib/svg/sanitize.ts
+  s_9aefe4a2760245::t_33d350e053f718 83
+specs/006-unified-coordinator-agent/contracts/coordinator-chat-api.yaml
+  s_9aefe4a2760245::t_f0b02888c3d052 1-97
+specs/006-unified-coordinator-agent/contracts/subagent-protocol.md
+  s_9aefe4a2760245::t_94eb46b8440626 1-83
+specs/006-unified-coordinator-agent/data-model.md
+  s_9aefe4a2760245::t_81d1e765e28e98 1-194
+specs/006-unified-coordinator-agent/plan.md
+  s_9aefe4a2760245::t_e60df2c52784d6 1-97
+specs/006-unified-coordinator-agent/quickstart.md
+  s_9aefe4a2760245::t_d4259e597f8bce 1-69
+specs/006-unified-coordinator-agent/research.md
+  s_9aefe4a2760245::t_d769fbf190139b 1-111
+specs/006-unified-coordinator-agent/spec.md
+  s_9aefe4a2760245::t_b9311f20301c0d 1-162
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "404fd379534625e37338ba1a9c4bbcb0e5a79322",
+  "prompts": {},
+  "humans": {
+    "h_6465a203f88bd5": {
+      "author": "larry <xspanni@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_9aefe4a2760245": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48d90204-caa4-4c1c-8d56-1c633be7693d",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "larry <xspanni@gmail.com>"
+    }
+  }
+}
