@@ -7,7 +7,31 @@ export type GenerationProfile = {
 
 export type ConversationSource = "web" | "mcp";
 
-export type ConversationKind = "image" | "icon" | "svg";
+export type ConversationKind = "general" | "image" | "icon" | "svg";
+
+export type SubagentType = "image" | "icon" | "svg";
+
+export type SubagentTaskStatus =
+  | "in_grill"
+  | "ready"
+  | "generating"
+  | "completed"
+  | "failed"
+  | "cancelled";
+
+export type SubagentTask = {
+  id: string;
+  conversationId: string;
+  subagentType: SubagentType;
+  status: SubagentTaskStatus;
+  clarifyingQuestions: string[];
+  suggestedPrompt: string;
+  suggestedSizes?: number[];
+  assetIds?: string[];
+  errorMessage?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
 
 export type AssetType = "image" | "icon" | "svg";
 
@@ -17,6 +41,7 @@ export type Conversation = {
   model: string;
   source: ConversationSource;
   kind: ConversationKind;
+  activeTaskId?: string | null;
   createdAt: string;
   updatedAt: string;
 };

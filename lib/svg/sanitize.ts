@@ -80,7 +80,7 @@ export function sanitizeSvg(raw: string): SanitizeSvgResult {
 
   // Soften fixed pixel width/height on root so CSS can scale (keep viewBox).
   const scaled = svg.replace(/<svg\b([^>]*)>/i, (_full, attrs: string) => {
-    let next = attrs
+    const next = attrs
       .replace(/\bwidth\s*=\s*["'][^"']*["']/gi, "")
       .replace(/\bheight\s*=\s*["'][^"']*["']/gi, "");
     return `<svg${next}>`;

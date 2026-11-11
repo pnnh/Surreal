@@ -4,7 +4,7 @@ import {
 } from "@/lib/db/conversations";
 import { insertMessage } from "@/lib/db/messages";
 import { getProfile } from "@/lib/db/profile";
-import type { Asset, Message } from "@/lib/db/types";
+import type { Asset, AssetType, Message } from "@/lib/db/types";
 import { getEnv } from "@/lib/env";
 import {
   appendIconSizeToPrompt,
@@ -36,6 +36,7 @@ export async function runGeneration(input: {
   userMessageContent?: string;
   source?: "confirm" | "skip";
   sizes?: number[];
+  assetType?: AssetType;
 }): Promise<GenerateResult> {
   const prompt = input.prompt.trim();
   if (!prompt) {
@@ -62,18 +63,19 @@ export async function runGeneration(input: {
   try {
     const profile = getProfile();
     const env = getEnv();
-    const isSvg = conversation.kind === "svg";
+    const assetType =
+      input.assetType ||
+      (conversation.kind === "icon"
+        ? "icon"
+        : conversation.kind === "svg"
+          ? "svg"
+          : "image");
+    const isSvg = assetType === "svg";
     const model = isSvg
       ? input.model?.trim() || env.agentModel
       : resolveModelId(
           input.model || conversation.model || profile.defaultModel,
         );
-    const assetType =
-      conversation.kind === "icon"
-        ? "icon"
-        : conversation.kind === "svg"
-          ? "svg"
-          : "image";
 
     const recordUser = input.recordUserMessage !== false;
     let userMessage: Message | null = null;

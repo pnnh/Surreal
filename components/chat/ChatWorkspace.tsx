@@ -9,13 +9,13 @@ import { FavoriteImage } from "@/components/chat/FavoriteImage";
 import { SvgPreview } from "@/components/chat/SvgPreview";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 
+import type { ConversationKind } from "@/lib/db/types";
+
 type ModelAllowlist = {
   defaultModel: string;
   models: Array<{ id: string; label: string; enabled: boolean }>;
   allowCustomModelId: boolean;
 };
-
-type ConversationKind = "image" | "icon" | "svg";
 
 type Conversation = {
   id: string;
@@ -41,8 +41,15 @@ type Message = {
 };
 
 function parseKind(value: unknown): ConversationKind {
-  if (value === "icon" || value === "svg") return value;
-  return "image";
+  if (
+    value === "general" ||
+    value === "icon" ||
+    value === "svg" ||
+    value === "image"
+  ) {
+    return value;
+  }
+  return "general";
 }
 
 export function ChatWorkspace() {
@@ -50,8 +57,8 @@ export function ChatWorkspace() {
   const [models, setModels] = useState<ModelAllowlist | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [activeKind, setActiveKind] = useState<ConversationKind>("image");
-  const [draftKind, setDraftKind] = useState<ConversationKind>("image");
+  const [activeKind, setActiveKind] = useState<ConversationKind>("general");
+  const [draftKind, setDraftKind] = useState<ConversationKind>("general");
   const [messages, setMessages] = useState<Message[]>([]);
   const [model, setModel] = useState("GPT-Image-1.5");
   const [customModel, setCustomModel] = useState("");
@@ -190,6 +197,7 @@ export function ChatWorkspace() {
     agentMessageId: string,
     imagePrompt: string,
     sizes?: number[],
+    assetType?: string,
   ) {
     if (!activeId || busy || generatingId) return;
     setGeneratingId(agentMessageId);
@@ -204,7 +212,8 @@ export function ChatWorkspace() {
           model: selectedModel,
           source: "confirm",
           agentMessageId,
-          sizes: activeKind === "icon" ? sizes : undefined,
+          sizes: sizes && sizes.length > 0 ? sizes : undefined,
+          assetType,
         }),
       });
       const data = await res.json();
@@ -224,11 +233,13 @@ export function ChatWorkspace() {
   }
 
   const kindLabel = (kind?: ConversationKind) =>
-    kind === "icon"
-      ? t.chat.kindIcon
-      : kind === "svg"
-        ? t.chat.kindSvg
-        : t.chat.kindImage;
+    kind === "general"
+      ? t.chat.kindGeneral
+      : kind === "icon"
+        ? t.chat.kindIcon
+        : kind === "svg"
+          ? t.chat.kindSvg
+          : t.chat.kindImage;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
@@ -240,35 +251,12 @@ export function ChatWorkspace() {
             </h2>
             <button
               type="button"
-              onClick={() => void onNewChat(draftKind)}
-              className="rounded-md bg-stone-100 px-2 py-1 text-xs text-stone-800 hover:bg-stone-200"
+              onClick={() => void onNewChat("general")}
+              className="rounded-md bg-amber-500 px-2 py-1 text-xs font-medium text-stone-950 hover:bg-amber-400"
             >
-              {t.chat.newSession}
+              + {t.chat.newSession}
             </button>
           </div>
-          <div className="flex gap-1 rounded-md bg-stone-100 p-0.5">
-            {(
-              [
-                ["image", t.chat.kindImage],
-                ["icon", t.chat.kindIcon],
-                ["svg", t.chat.kindSvg],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setDraftKind(value)}
-                className={`flex-1 rounded px-2 py-1 text-xs ${
-                  draftKind === value
-                    ? "bg-white text-stone-900 shadow-sm"
-                    : "text-stone-500"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <p className="text-[11px] text-stone-400">{t.chat.newKindHint}</p>
         </div>
         <ul className="space-y-1">
           {conversations.map((c) => (
@@ -333,7 +321,9 @@ export function ChatWorkspace() {
           {messages.map((m) => {
             const meta = m.meta as AgentMetaView | null | undefined;
             const isAgent =
-              m.role === "assistant" && meta?.kind === "agent_reply";
+              m.role === "assistant" &&
+              (meta?.kind === "agent_reply" ||
+                meta?.kind === "coordinator_reply");
             return (
               <div
                 key={m.id}
@@ -349,7 +339,12 @@ export function ChatWorkspace() {
                     meta={meta}
                     generating={generatingId === m.id}
                     onGenerate={(imagePrompt, sizes) =>
-                      void onGenerateNow(m.id, imagePrompt, sizes)
+                      void onGenerateNow(
+                        m.id,
+                        imagePrompt,
+                        sizes,
+                        meta?.subagentType,
+                      )
                     }
                   />
                 ) : (
@@ -401,7 +396,9 @@ export function ChatWorkspace() {
                 ? t.chat.emptyHintIcon
                 : (activeId ? activeKind : draftKind) === "svg"
                   ? t.chat.emptyHintSvg
-                  : t.chat.emptyHint}
+                  : (activeId ? activeKind : draftKind) === "image"
+                    ? t.chat.emptyHint
+                    : t.chat.emptyHintGeneral}
             </p>
           )}
         </div>
@@ -424,7 +421,9 @@ export function ChatWorkspace() {
                   ? t.chat.promptPlaceholderIcon
                   : (activeId ? activeKind : draftKind) === "svg"
                     ? t.chat.promptPlaceholderSvg
-                    : t.chat.promptPlaceholder
+                    : (activeId ? activeKind : draftKind) === "image"
+                      ? t.chat.promptPlaceholder
+                      : t.chat.promptPlaceholderGeneral
               }
               className="flex-1 resize-none rounded-md border border-stone-300 bg-white px-3 py-2 text-sm"
               disabled={busy || Boolean(generatingId)}

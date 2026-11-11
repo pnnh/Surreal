@@ -15,14 +15,15 @@ pnpm dev
 
 ## 功能
 
-- Web **图片 / 位图图标 / SVG** Agent（默认文本 `GPT-4o-Mini`）：反向拷问 → 确认后生成
+- **统一聊天 Coordinator Agent**：统一会话入口，智能识别意图，自动调度生图 / 位图图标 / SVG 矢量专业子 Agent，中继代理反向拷问与答复闭环
+- Web **图片 / 位图图标 / SVG** 专业子 Agent：反向拷问 → 确认后生成
 - SVG：单份矢量，`viewBox` + `currentColor`，可用 CSS 调大小与颜色
 - 资产库按类型过滤（全部 / 图片 / 图标 / SVG）
 - 落盘：`data/assets/<conversationId>/{images|icons|svg}/…`
-- **MCP**（无反问、无认证 MVP）：`pnpm mcp`
+- **MCP**（无反问、无认证 MVP）：`pnpm mcp`（支持 Cursor 与 Antigravity）
 - MCP 会话页：`/mcp-sessions`
 
-活跃规格：`specs/005-svg-icon/`
+活跃规格：`specs/006-unified-coordinator-agent/`
 
 ## MCP
 

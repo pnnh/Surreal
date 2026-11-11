@@ -10,7 +10,14 @@ import { resolveModelId } from "@/lib/models/allowlist";
 export const runtime = "nodejs";
 
 function parseKind(value: unknown): ConversationKind | undefined {
-  if (value === "icon" || value === "image" || value === "svg") return value;
+  if (
+    value === "general" ||
+    value === "icon" ||
+    value === "image" ||
+    value === "svg"
+  ) {
+    return value;
+  }
   return undefined;
 }
 
@@ -37,7 +44,7 @@ export async function POST(request: Request) {
       title: body.title,
       model: resolveModelId(body.model || profile.defaultModel),
       source: "web",
-      kind: parseKind(body.kind) ?? "image",
+      kind: parseKind(body.kind) ?? "general",
     });
     return jsonOk(conversation, { status: 201 });
   } catch (err) {

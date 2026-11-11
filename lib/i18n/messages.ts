@@ -46,6 +46,16 @@ export type Messages = {
     kindImage: string;
     kindIcon: string;
     kindSvg: string;
+    kindGeneral: string;
+    specialistImage: string;
+    specialistIcon: string;
+    specialistSvg: string;
+    taskWaitingUser: string;
+    taskGenerating: string;
+    taskCompleted: string;
+    taskCancelled: string;
+    emptyHintGeneral: string;
+    promptPlaceholderGeneral: string;
     newKindHint: string;
     svgColor: string;
     svgSize: string;
@@ -136,6 +146,18 @@ export const messages: Record<Locale, Messages> = {
       kindImage: "Image",
       kindIcon: "Icon",
       kindSvg: "SVG",
+      kindGeneral: "Chat",
+      specialistImage: "Image Specialist",
+      specialistIcon: "Icon Specialist",
+      specialistSvg: "SVG Specialist",
+      taskWaitingUser: "Awaiting your clarification",
+      taskGenerating: "Generating asset…",
+      taskCompleted: "Task completed",
+      taskCancelled: "Task cancelled",
+      emptyHintGeneral:
+        "Chat with the Coordinator Agent. Describe any game art, bitmap icon, or SVG vector icon.",
+      promptPlaceholderGeneral:
+        "Describe what you want (e.g. game character, potion icon, SVG icon, or chat)…",
       newKindHint: "New sessions use the selected type above.",
       svgColor: "Color",
       svgSize: "Size",
@@ -225,6 +247,18 @@ export const messages: Record<Locale, Messages> = {
       kindImage: "图片",
       kindIcon: "图标",
       kindSvg: "SVG",
+      kindGeneral: "通用对话",
+      specialistImage: "生图专家",
+      specialistIcon: "图标专家",
+      specialistSvg: "SVG 专家",
+      taskWaitingUser: "等待细节确认",
+      taskGenerating: "正在协同生成资产…",
+      taskCompleted: "任务已完成",
+      taskCancelled: "任务已取消",
+      emptyHintGeneral:
+        "向主聊天 Agent 发送消息。直接用自然语言描述立绘、场景、位图图标或 SVG 矢量图标。",
+      promptPlaceholderGeneral:
+        "输入你想创作的资产（如画个法师立绘、药水图标、SVG购物车），或直接交流…",
       newKindHint: "新建会话将使用上方所选类型。",
       svgColor: "颜色",
       svgSize: "大小",

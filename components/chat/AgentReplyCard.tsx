@@ -4,6 +4,10 @@ import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 export type AgentMetaView = {
   kind?: string;
+  intent?: string;
+  subagentType?: "image" | "icon" | "svg";
+  taskId?: string;
+  taskStatus?: string;
   clarifyingQuestions?: string[];
   suggestedPrompt?: string;
   suggestedSizes?: number[];
@@ -31,8 +35,26 @@ export function AgentReplyCard({
   const assumptions = meta?.assumptions?.filter(Boolean) ?? [];
   const ready = Boolean(meta?.readyToGenerate && suggested);
 
+  const specialistBadge =
+    meta?.subagentType === "icon"
+      ? t.chat.specialistIcon
+      : meta?.subagentType === "svg"
+        ? t.chat.specialistSvg
+        : meta?.subagentType === "image"
+          ? t.chat.specialistImage
+          : null;
+
   return (
     <div className="space-y-3">
+      {specialistBadge && (
+        <div>
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            {specialistBadge}
+          </span>
+        </div>
+      )}
+
       <p className="whitespace-pre-wrap">{content}</p>
 
       {questions.length > 0 && (

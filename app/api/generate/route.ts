@@ -1,4 +1,6 @@
 import { errorFromUnknown, jsonOk } from "@/lib/api/http";
+import { getActiveSubagentTask, updateSubagentTask } from "@/lib/db/tasks";
+import type { AssetType } from "@/lib/db/types";
 import { runGeneration } from "@/lib/generation/run";
 
 export const runtime = "nodejs";
@@ -13,6 +15,7 @@ export async function POST(request: Request) {
       source?: "confirm" | "skip";
       agentMessageId?: string;
       sizes?: number[];
+      assetType?: string;
     };
 
     if (!body.conversationId || !body.prompt?.trim()) {
@@ -33,6 +36,10 @@ export async function POST(request: Request) {
       );
     }
 
+    const activeTask = getActiveSubagentTask(body.conversationId);
+    const assetType =
+      (body.assetType as AssetType) || activeTask?.subagentType;
+
     const result = await runGeneration({
       conversationId: body.conversationId,
       prompt: body.prompt,
@@ -44,7 +51,15 @@ export async function POST(request: Request) {
           : body.prompt,
       source,
       sizes: Array.isArray(body.sizes) ? body.sizes : undefined,
+      assetType,
     });
+
+    if (activeTask && result.assets.length > 0) {
+      updateSubagentTask(activeTask.id, {
+        status: "completed",
+        assetIds: result.assets.map((a) => a.id),
+      });
+    }
 
     return jsonOk({
       ...result,

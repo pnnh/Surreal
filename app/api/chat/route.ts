@@ -1,3 +1,4 @@
+import { runCoordinatorTurn } from "@/lib/agents/coordinator/run-coordinator-turn";
 import { detectsSkipClarification } from "@/lib/agents/detect-skip";
 import { runAgentTurn } from "@/lib/agents/run-agent-turn";
 import type { AgentMessageMeta } from "@/lib/agents/types";
@@ -7,6 +8,7 @@ import {
   touchConversation,
 } from "@/lib/db/conversations";
 import { insertMessage } from "@/lib/db/messages";
+import { updateSubagentTask } from "@/lib/db/tasks";
 import { runGeneration } from "@/lib/generation/run";
 
 export const runtime = "nodejs";
@@ -55,6 +57,70 @@ export async function POST(request: Request) {
       touchConversation(conversation.id, {});
     }
 
+    // 1. General conversation routed via Coordinator-Subagent pipeline
+    if (conversation.kind === "general") {
+      const { meta, task, agentModel } = await runCoordinatorTurn({
+        conversationId: conversation.id,
+        userPrompt: prompt,
+        locale,
+        forceSkip,
+      });
+
+      const assistantMessage = insertMessage({
+        conversationId: conversation.id,
+        role: "assistant",
+        content:
+          meta.assistantMessage ||
+          (locale === "zh"
+            ? "已收到，正在协同处理。"
+            : "Received, coordinating with specialist."),
+        model: agentModel,
+        meta,
+      });
+
+      let generated: Awaited<ReturnType<typeof runGeneration>> | null = null;
+      if (
+        forceSkip &&
+        meta.readyToGenerate &&
+        meta.suggestedPrompt?.trim() &&
+        task
+      ) {
+        generated = await runGeneration({
+          conversationId: conversation.id,
+          prompt: meta.suggestedPrompt.trim(),
+          model: body.model || conversation.model,
+          recordUserMessage: false,
+          source: "skip",
+          sizes: task.subagentType === "icon" ? meta.suggestedSizes : undefined,
+          assetType: task.subagentType,
+        });
+
+        if (generated.assets.length > 0) {
+          updateSubagentTask(task.id, {
+            status: "completed",
+            assetIds: generated.assets.map((a) => a.id),
+          });
+        }
+      }
+
+      return jsonOk({
+        userMessage,
+        assistantMessage: {
+          ...assistantMessage,
+          meta,
+        },
+        agent: meta,
+        task,
+        generated: generated
+          ? {
+              assistantMessage: generated.assistantMessage,
+              assets: generated.assets,
+            }
+          : null,
+      });
+    }
+
+    // 2. Legacy dedicated conversation kinds (image, icon, svg)
     const { reply, agentModel } = await runAgentTurn({
       conversationId: conversation.id,
       userPrompt: prompt,

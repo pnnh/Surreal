@@ -62,6 +62,26 @@ CREATE INDEX IF NOT EXISTS idx_assets_conversation
 
 CREATE INDEX IF NOT EXISTS idx_assets_type_created
   ON assets(asset_type, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS subagent_tasks (
+  id TEXT PRIMARY KEY,
+  conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  subagent_type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  clarifying_questions TEXT NOT NULL DEFAULT '[]',
+  suggested_prompt TEXT NOT NULL DEFAULT '',
+  suggested_sizes TEXT NOT NULL DEFAULT '[]',
+  asset_ids TEXT NOT NULL DEFAULT '[]',
+  error_message TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_tasks_conversation_id
+  ON subagent_tasks(conversation_id);
+
+CREATE INDEX IF NOT EXISTS idx_tasks_status
+  ON subagent_tasks(status);
 `;
 
 function runMigrations(db: DatabaseSync): void {
@@ -69,6 +89,7 @@ function runMigrations(db: DatabaseSync): void {
   migrateMessagesMeta(db);
   migrateConversationSource(db);
   migrateConversationKind(db);
+  migrateConversationActiveTask(db);
   migrateAssetType(db);
 }
 
@@ -130,6 +151,15 @@ function migrateConversationKind(db: DatabaseSync): void {
     db.exec(
       `ALTER TABLE conversations ADD COLUMN kind TEXT NOT NULL DEFAULT 'image'`,
     );
+  }
+}
+
+function migrateConversationActiveTask(db: DatabaseSync): void {
+  const cols = db.prepare(`PRAGMA table_info(conversations)`).all() as Array<{
+    name: string;
+  }>;
+  if (!cols.some((c) => c.name === "active_task_id")) {
+    db.exec(`ALTER TABLE conversations ADD COLUMN active_task_id TEXT`);
   }
 }
 

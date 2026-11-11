@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "surreal": {
+      "command": "pnpm",
+      "args": ["mcp"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}
+

@@ -1,0 +1,7 @@
+{
+  "name": "surreal",
+  "displayName": "Surreal Image & Icon Generation",
+  "version": "0.1.0",
+  "description": "Surreal MCP server for text-to-image, icon, and SVG generation"
+}
+

@@ -18,7 +18,8 @@
 
 - 规范与任务驱动：`/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`（可插入 clarify / checklist / analyze / converge）
 - 规范存储：`.specify/` 与 `specs/`
-- Agent skills：`.claude/skills/speckit-*`（Claude 格式；Cursor 等 Agent 可读同一产物）
+- Agent skills：`.claude/skills/speckit-*` 与 `.agents/skills/speckit-*`（支持 Claude Code、Cursor 与 Antigravity）
+- MCP 配置：`.cursor/mcp.json`（Cursor）与 `~/.gemini/config/mcp_config.json` / `.agents/plugins/surreal/`（Antigravity）
 
 **产品边界（摘要）**：
 
@@ -26,12 +27,11 @@
 - MVP：Poe 文生图对话 + 本地资产存储/收藏 + 可调系统提示词
 - 非 MVP：3D/骨骼产品化、多用户、S3 上线（仅预留抽象）
 
-**当前活动功能**：见 `.specify/feature.json` → `specs/005-svg-icon/`（SVG 矢量图标 Agent，CSS 可调大小/颜色）
+**当前活动功能**：见 `.specify/feature.json` → `specs/006-unified-coordinator-agent/`（统一主聊天 Agent 与子 Agent 任务协同架构）
 
 **已完成基线**：
 - `specs/001-text-to-image-mvp/`（文生图对话 + 资产库）
 - `specs/002-image-agent-grill/`（轻量生图 Agent / 反向拷问）
 - `specs/003-mcp-image-service/`（MCP 直出图 + 聊天收藏 + MCP 会话页）
 - `specs/004-icon-agent/`（位图图标 Agent + 类型过滤 + 按会话目录 + MCP `generate_icon`）
-
-- `specs/003-mcp-image-service/`（MCP 直出图 + 聊天收藏 + MCP 会话页）
+- `specs/005-svg-icon/`（SVG 矢量图标 Agent，CSS 可调大小/颜色）

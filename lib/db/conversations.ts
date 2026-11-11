@@ -14,6 +14,7 @@ type Row = {
   model: string;
   source: string;
   kind: string;
+  active_task_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -21,7 +22,8 @@ type Row = {
 function mapKind(kind: string | undefined): ConversationKind {
   if (kind === "icon") return "icon";
   if (kind === "svg") return "svg";
-  return "image";
+  if (kind === "image") return "image";
+  return "general";
 }
 
 function mapRow(row: Row): Conversation {
@@ -31,12 +33,13 @@ function mapRow(row: Row): Conversation {
     model: row.model,
     source: row.source === "mcp" ? "mcp" : "web",
     kind: mapKind(row.kind),
+    activeTaskId: row.active_task_id ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 }
 
-const SELECT_COLS = `id, title, model, source, kind, created_at, updated_at`;
+const SELECT_COLS = `id, title, model, source, kind, active_task_id, created_at, updated_at`;
 
 export function listConversations(opts?: {
   source?: ConversationSource;
@@ -79,12 +82,11 @@ export function createConversation(input?: {
   const model = input?.model?.trim() || "GPT-Image-1.5";
   const title = input?.title?.trim() || null;
   const source = input?.source === "mcp" ? "mcp" : "web";
-  const kind: ConversationKind =
-    input?.kind === "icon" || input?.kind === "svg" ? input.kind : "image";
+  const kind: ConversationKind = input?.kind ?? "general";
   getDb()
     .prepare(
-      `INSERT INTO conversations (id, title, model, source, kind, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO conversations (id, title, model, source, kind, active_task_id, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, NULL, ?, ?)`,
     )
     .run(id, title, model, source, kind, now, now);
   return getConversation(id)!;
@@ -92,23 +94,22 @@ export function createConversation(input?: {
 
 export function touchConversation(
   id: string,
-  patch?: { title?: string; model?: string },
+  patch?: { title?: string; model?: string; activeTaskId?: string | null },
 ) {
   const current = getConversation(id);
   if (!current) return null;
   const now = new Date().toISOString();
+  const newTitle = patch?.title !== undefined ? patch.title : current.title;
+  const newModel = patch?.model !== undefined ? patch.model : current.model;
+  const newActiveTaskId =
+    patch?.activeTaskId !== undefined ? patch.activeTaskId : (current.activeTaskId ?? null);
   getDb()
     .prepare(
       `UPDATE conversations
-       SET title = ?, model = ?, updated_at = ?
+       SET title = ?, model = ?, active_task_id = ?, updated_at = ?
        WHERE id = ?`,
     )
-    .run(
-      patch?.title !== undefined ? patch.title : current.title,
-      patch?.model !== undefined ? patch.model : current.model,
-      now,
-      id,
-    );
+    .run(newTitle, newModel, newActiveTaskId, now, id);
   return getConversation(id);
 }
 

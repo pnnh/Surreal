@@ -16,6 +16,20 @@ export type AgentMessageMeta = AgentReply & {
   agentModel?: string;
 };
 
+export type CoordinatorMessageMeta = {
+  kind: "coordinator_reply";
+  intent: "chat" | "delegate" | "task_update";
+  assistantMessage?: string;
+  subagentType?: "image" | "icon" | "svg";
+  taskId?: string;
+  taskStatus?: string;
+  clarifyingQuestions?: string[];
+  suggestedPrompt?: string;
+  suggestedSizes?: number[];
+  readyToGenerate?: boolean;
+  agentModel?: string;
+};
+
 export type UserMessageMeta = {
   kind: "user";
   skipClarification?: boolean;
@@ -25,10 +39,25 @@ export type ImageResultMeta = {
   kind: "image_result";
   imagePrompt?: string;
   sizes?: number[];
-  assetType?: "image" | "icon";
+  assetType?: "image" | "icon" | "svg";
 };
 
-export type MessageMeta = AgentMessageMeta | UserMessageMeta | ImageResultMeta;
+export type MessageMeta =
+  | CoordinatorMessageMeta
+  | AgentMessageMeta
+  | UserMessageMeta
+  | ImageResultMeta;
+
+export type SubagentInput = {
+  taskId?: string;
+  conversationId: string;
+  subagentType: "image" | "icon" | "svg";
+  userPrompt: string;
+  contextSummary?: string;
+  taskHistory?: Array<{ role: "user" | "assistant"; content: string }>;
+  locale: "zh" | "en";
+  forceSkip: boolean;
+};
 
 export function parseAgentReplyJson(raw: string): AgentReply | null {
   const trimmed = raw.trim();
